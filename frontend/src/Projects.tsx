@@ -16,7 +16,7 @@ export default function Projects() {
   const [openId, setOpenId] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const list = ws.projects.filter(p => filter === 'All' || p.status === filter);
-  const cname = (id: string) => ws.clients.find(c => c.id === id)?.name ?? '—';
+  const cname = (id: string | null) => (id ? ws.clients.find(c => c.id === id)?.name : undefined) ?? 'No client';
   const project = openId ? ws.projects.find(p => p.id === openId) : undefined;
 
   if (project) return <ProjectDetail project={project} back={() => setOpenId(null)} />;
@@ -160,7 +160,6 @@ function NewProject({ open, onClose }: { open: boolean; onClose: () => void }) {
   const save = async () => {
     const e: Record<string, string> = {};
     if (!f.name.trim()) e.name = 'Project name is required';
-    if (!f.clientId) e.clientId = 'Add a client first';
     if (!(Number(f.budget) > 0)) e.budget = 'Enter a budget';
     if (!f.start) e.start = 'Required';
     if (!f.end) e.end = 'Required';
@@ -168,7 +167,7 @@ function NewProject({ open, onClose }: { open: boolean; onClose: () => void }) {
     setErr(e);
     if (Object.keys(e).length) return;
     setSaving(true);
-    const ok = await s.act(() => api.projects.create({ name: f.name.trim(), clientId: f.clientId, category: f.category, priority: f.priority as Priority, budget: Number(f.budget), start: f.start, end: f.end }), 'Project created');
+    const ok = await s.act(() => api.projects.create({ name: f.name.trim(), clientId: f.clientId || null, category: f.category, priority: f.priority as Priority, budget: Number(f.budget), start: f.start, end: f.end }), 'Project created');
     setSaving(false);
     if (ok) { setF(blank); onClose(); }
   };
@@ -176,7 +175,7 @@ function NewProject({ open, onClose }: { open: boolean; onClose: () => void }) {
     <Modal open={open} onClose={onClose} title="New project" sub="Set up a new client engagement" footer={<><Button variant="ghost" onClick={onClose}>Cancel</Button><Button variant="primary" onClick={save} disabled={saving}>{saving ? 'Creating…' : 'Create project'}</Button></>}>
       <div className="grid grid-cols-2 gap-4">
         <Field label="Project name" error={err.name} className="col-span-2"><Input value={f.name} onChange={u('name')} /></Field>
-        <Field label="Client" error={err.clientId}><Select value={f.clientId} onChange={u('clientId')} options={s.ws.clients.map(c => [c.id, c.name] as [string, string])} /></Field>
+        <Field label="Client (optional)" error={err.clientId}><Select value={f.clientId} onChange={u('clientId')} options={[['', 'No client'], ...s.ws.clients.map(c => [c.id, c.name] as [string, string])]} /></Field>
         <Field label="Service category"><Select value={f.category} onChange={u('category')} options={SERVICES} /></Field>
         <Field label="Priority"><Select value={f.priority} onChange={u('priority')} options={['Low', 'Medium', 'High', 'Critical']} /></Field>
         <Field label="Budget (LKR)" error={err.budget}><Input type="number" value={f.budget} onChange={u('budget')} /></Field>

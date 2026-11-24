@@ -20,7 +20,7 @@ export interface Client {
 export interface Task { id: string; title: string; status: TaskStatus; assignee: string | null; due: string }
 export interface Milestone { id: string; name: string; due: string; amount: number; paid: boolean }
 export interface Project {
-  id: string; name: string; clientId: string; status: ProjectStatus; priority: Priority; budget: number; spent: number;
+  id: string; name: string; clientId: string | null; status: ProjectStatus; priority: Priority; budget: number; spent: number;
   start: string; end: string; team: string[]; category: string; tasks: Task[]; milestones: Milestone[];
 }
 

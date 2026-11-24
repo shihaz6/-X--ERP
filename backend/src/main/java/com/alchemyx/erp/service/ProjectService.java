@@ -97,7 +97,7 @@ public class ProjectService {
         return new ProjectDto(
                 p.getId().toString(),
                 p.getName(),
-                p.getClientId().toString(),
+                p.getClientId() == null ? null : p.getClientId().toString(),
                 p.getStatus(),
                 p.getPriority(),
                 p.getBudget(),
@@ -113,8 +113,9 @@ public class ProjectService {
     @Transactional
     public void create(Member actor, ProjectRequest req) {
         Permissions.require(Permissions.editProjects(actor.getRole()), "Your role cannot create projects.");
-        UUID clientId = Parse.uuid(req.clientId(), "Client");
-        if (!clients.existsById(clientId)) {
+        // The client is optional. When one is given it must exist.
+        UUID clientId = Parse.optionalUuid(req.clientId(), "Client");
+        if (clientId != null && !clients.existsById(clientId)) {
             throw ApiException.notFound("Client not found");
         }
         LocalDate start = Validation.date(req.start(), "Start date");

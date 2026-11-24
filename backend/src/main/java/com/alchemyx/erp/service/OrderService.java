@@ -80,7 +80,7 @@ public class OrderService {
         UUID projectId = Parse.optionalUuid(req.projectId(), "Project");
         if (projectId != null) {
             Project p = projects.findById(projectId).orElseThrow(() -> ApiException.notFound("Project not found"));
-            if (!p.getClientId().equals(clientId)) {
+            if (p.getClientId() != null && !p.getClientId().equals(clientId)) {
                 throw ApiException.badRequest("The project belongs to a different client");
             }
         }
