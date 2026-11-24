@@ -1,13 +1,12 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Plus, X } from 'lucide-react';
-import { Card, CardHead, PageHeader, Button, Badge, Table, Field, Input, Select, Modal, useStore, Avatar, Confirm, Logo } from './ui';
+import { Card, CardHead, PageHeader, Button, Badge, Table, Field, Input, Select, Modal, useStore, Avatar, Confirm, Logo, Pager } from './ui';
 import { api } from './api';
-import type { Role } from './types';
+import type { Role, Audit, PageResult } from './types';
 
 const SECTIONS = ['Company', 'Accounts & roles', 'Services', 'Invoicing', 'Notifications', 'Audit log'] as const;
 type Section = (typeof SECTIONS)[number];
 const ROLES: Role[] = ['Super Admin', 'Finance Manager', 'Project Manager', 'Developer'];
-const CURRENCIES = ['LKR', 'USD', 'EUR'];
 const FISCAL = ['July', 'January', 'April'];
 const TEMPLATES = ['Modern', 'Classic', 'Minimal'];
 const TERMS = ['Net 30', 'Net 15', 'Net 45', 'Due on receipt'];
@@ -39,8 +38,7 @@ export default function Settings() {
           {sec === 'Services' && <ServicesSection services={ws.settings.services} />}
           {sec === 'Invoicing' && <InvoicingSection />}
           {sec === 'Notifications' && <NotificationsSection />}
-          {sec === 'Audit log' && <Card><CardHead title="Audit log" sub="Every business change is recorded with the person who made it" />
-            <Table rows={ws.audit} empty={<div className="px-5 pb-5 text-xs text-neutral-500">No activity recorded yet.</div>} cols={[{ h: 'Time', r: a => <span className="font-mono text-xs text-neutral-500">{a.at}</span> }, { h: 'User', r: a => a.who }, { h: 'Action', r: a => a.what }]} /></Card>}
+          {sec === 'Audit log' && <AuditSection />}
         </div>
       </div>
     </div>
@@ -55,13 +53,12 @@ function CompanySection() {
   const s = useStore();
   const { settings } = s.ws;
   const [company, setCompany] = useState({ companyName: settings.company.name, registrationNo: settings.company.registrationNo, billingEmail: settings.company.billingEmail, registeredAddress: settings.company.address });
-  const [currency, setCurrency] = useState(settings.currency);
   const [fiscal, setFiscal] = useState(settings.fiscalYearStart);
   const [cash, setCash] = useState(String(settings.openingCash));
   const [busy, setBusy] = useState(false);
   const save = async () => {
     setBusy(true);
-    await s.act(() => api.settings.update({ ...company, currency, fiscalYearStart: fiscal, openingCash: Number(cash) || 0 }), 'Company settings saved');
+    await s.act(() => api.settings.update({ ...company, fiscalYearStart: fiscal, openingCash: Number(cash) || 0 }), 'Company settings saved');
     setBusy(false);
   };
   return (
@@ -72,7 +69,6 @@ function CompanySection() {
         <Field label="Registration no."><Input value={company.registrationNo} onChange={e => setCompany({ ...company, registrationNo: e.target.value })} /></Field>
         <Field label="Billing email"><Input value={company.billingEmail} onChange={e => setCompany({ ...company, billingEmail: e.target.value })} /></Field>
         <Field label="Registered address"><Input value={company.registeredAddress} onChange={e => setCompany({ ...company, registeredAddress: e.target.value })} /></Field>
-        <Field label="Default currency"><Select value={currency} onChange={e => setCurrency(e.target.value)} options={CURRENCIES} /></Field>
         <Field label="Fiscal year start"><Select value={fiscal} onChange={e => setFiscal(e.target.value as typeof fiscal)} options={FISCAL} /></Field>
         <Field label="Opening cash balance (LKR)"><Input type="number" value={cash} onChange={e => setCash(e.target.value)} /></Field>
         <SaveBar onSave={save} busy={busy} />
@@ -202,5 +198,24 @@ function NotificationsSection() {
         <div key={k} className="flex items-center justify-between border-b border-line/40 py-3 last:border-0"><div><div className="text-sm">{l}</div><div className="text-xs text-neutral-500">{d}</div></div>
           <button onClick={() => s.act(() => api.settings.update({ [`notify${k.charAt(0).toUpperCase()}${k.slice(1)}`]: !n[k] }))} className={`relative h-5 w-9 rounded-full transition ${n[k] ? 'bg-accent' : 'bg-neutral-600'}`} aria-pressed={n[k]}><span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white transition-all ${n[k] ? 'left-[18px]' : 'left-0.5'}`} /></button></div>
       ))}</div></Card>
+  );
+}
+
+function AuditSection() {
+  const [page, setPage] = useState(0);
+  const [data, setData] = useState<PageResult<Audit> | null>(null);
+  useEffect(() => {
+    api.audit.list(page, 25).then(setData).catch(() => setData(null));
+  }, [page]);
+  return (
+    <Card>
+      <CardHead title="Audit log" sub="Every business change is recorded with the person who made it" />
+      <Table rows={data?.items ?? []} empty={<div className="px-5 pb-5 text-xs text-neutral-500">No activity recorded yet.</div>} cols={[
+        { h: 'Time', r: a => <span className="font-mono text-xs text-neutral-500">{a.at}</span> },
+        { h: 'User', r: a => a.who },
+        { h: 'Action', r: a => a.what },
+      ]} />
+      {data && <Pager page={data.page} size={data.size} total={data.total} onPage={setPage} />}
+    </Card>
   );
 }

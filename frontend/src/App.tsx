@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { LayoutDashboard, Users, FolderKanban, ShoppingCart, Wallet, Repeat, UsersRound, FileText, BarChart3, Settings as Cog, Search, Bell, ChevronsLeft, ChevronDown, LogOut, Lock } from 'lucide-react';
-import { StoreProvider, useStore, Logo, Avatar, Button, Field, Input, Spinner, Empty, money } from './ui';
+import { StoreProvider, useStore, Logo, Avatar, Button, Field, Input, Spinner, Empty, money, ErrorBoundary } from './ui';
 import { api, session, ApiError } from './api';
 import type { Capabilities } from './types';
 import Dashboard from './Dashboard';
@@ -38,6 +38,8 @@ export default function App() {
     setAuthed(false);
   }, []);
 
+  const resetToken = new URLSearchParams(window.location.search).get('reset');
+  if (!authed && resetToken) return <ResetPassword token={resetToken} />;
   if (!authed) return <Login onDone={() => setAuthed(true)} />;
   return (
     <StoreProvider go={setPage} onSignedOut={signOut}>
@@ -51,6 +53,7 @@ function Login({ onDone }: { onDone: () => void }) {
   const [pw, setPw] = useState('');
   const [err, setErr] = useState('');
   const [busy, setBusy] = useState(false);
+  const [forgot, setForgot] = useState(false);
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!username.trim()) return setErr('Enter your username or work email');
@@ -65,6 +68,7 @@ function Login({ onDone }: { onDone: () => void }) {
       setBusy(false);
     }
   };
+  if (forgot) return <ForgotPassword onBack={() => setForgot(false)} />;
   return (
     <div className="grid min-h-full lg:grid-cols-2">
       <div className="relative hidden overflow-hidden border-r border-line/60 bg-base p-12 lg:flex lg:flex-col">
@@ -85,6 +89,7 @@ function Login({ onDone }: { onDone: () => void }) {
             <Field label="Username or work email"><Input autoComplete="username" value={username} onChange={e => setUsername(e.target.value)} /></Field>
             <Field label="Password" error={err}><Input type="password" autoComplete="current-password" value={pw} onChange={e => setPw(e.target.value)} /></Field>
             <Button variant="primary" type="submit" className="h-10 w-full" disabled={busy}>{busy ? <><Spinner />Signing in…</> : 'Sign in'}</Button>
+            <button type="button" onClick={() => setForgot(true)} className="w-full text-center text-xs text-accent hover:underline">Forgot password?</button>
           </div>
         </form>
       </div>
@@ -150,7 +155,7 @@ function Shell({ page, setPage, signOut }: { page: string; setPage: (p: string) 
             );
           })}
         </nav>
-        <button onClick={() => setCollapsed(!collapsed)} className="m-3 flex items-center gap-2 rounded-lg px-3 py-2 text-xs text-neutral-500 hover:bg-white/5 hover:text-neutral-300">
+        <button aria-label="Collapse sidebar" onClick={() => setCollapsed(!collapsed)} className="m-3 flex items-center gap-2 rounded-lg px-3 py-2 text-xs text-neutral-500 hover:bg-white/5 hover:text-neutral-300">
           <ChevronsLeft size={16} className={`transition ${collapsed ? 'rotate-180' : ''}`} />{!collapsed && 'Collapse'}
         </button>
       </aside>
@@ -159,7 +164,7 @@ function Shell({ page, setPage, signOut }: { page: string; setPage: (p: string) 
         <header className="relative z-30 flex h-16 shrink-0 items-center gap-4 border-b border-line/60 bg-base/80 px-6 backdrop-blur">
           <div className="relative w-full max-w-md">
             <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500" />
-            <input ref={searchRef} value={q} onChange={e => setQ(e.target.value)} placeholder="Search clients, projects, orders, invoices…" className="h-9 w-full rounded-lg border border-line bg-panel pl-9 pr-14 text-sm outline-none placeholder:text-neutral-600 focus:border-accent/60" />
+            <input ref={searchRef} aria-label="Search" value={q} onChange={e => setQ(e.target.value)} placeholder="Search clients, projects, orders, invoices…" className="h-9 w-full rounded-lg border border-line bg-panel pl-9 pr-14 text-sm outline-none placeholder:text-neutral-600 focus:border-accent/60" />
             <kbd className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded border border-line px-1.5 text-[10px] text-neutral-500">Ctrl K</kbd>
             {q.length > 1 && (
               <div className="pop absolute left-0 right-0 top-11 rounded-xl border border-line bg-panel p-1.5 shadow-2xl">
@@ -169,7 +174,7 @@ function Shell({ page, setPage, signOut }: { page: string; setPage: (p: string) 
           </div>
           <div className="ml-auto flex items-center gap-2">
             <div className="relative">
-              <button onClick={() => setMenu(menu === 'notif' ? null : 'notif')} className="relative grid h-9 w-9 place-items-center rounded-lg text-neutral-400 hover:bg-white/5 hover:text-neutral-100"><Bell size={18} />{notifs.length > 0 && <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-accent ring-2 ring-base" />}</button>
+              <button aria-label="Notifications" onClick={() => setMenu(menu === 'notif' ? null : 'notif')} className="relative grid h-9 w-9 place-items-center rounded-lg text-neutral-400 hover:bg-white/5 hover:text-neutral-100"><Bell size={18} />{notifs.length > 0 && <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-accent ring-2 ring-base" />}</button>
               {menu === 'notif' && (
                 <div className="pop absolute right-0 top-11 w-80 rounded-xl border border-line bg-panel p-2 shadow-2xl">
                   <div className="px-2 py-1.5 text-xs font-medium text-neutral-400">Notifications · {notifs.length}</div>
@@ -178,7 +183,7 @@ function Shell({ page, setPage, signOut }: { page: string; setPage: (p: string) 
               )}
             </div>
             <div className="relative">
-              <button onClick={() => setMenu(menu === 'user' ? null : 'user')} className="flex items-center gap-2.5 rounded-lg py-1 pl-1 pr-2 hover:bg-white/5">
+              <button aria-label="Account menu" onClick={() => setMenu(menu === 'user' ? null : 'user')} className="flex items-center gap-2.5 rounded-lg py-1 pl-1 pr-2 hover:bg-white/5">
                 <Avatar m={user} size={30} />
                 <div className="hidden text-left leading-tight md:block"><div className="text-sm">{user.name}</div><div className="text-[11px] text-neutral-500">{user.access}</div></div>
                 <ChevronDown size={14} className="text-neutral-500" />
@@ -197,10 +202,85 @@ function Shell({ page, setPage, signOut }: { page: string; setPage: (p: string) 
           <div className="mx-auto max-w-[1440px] p-6 lg:p-8">
             {loading ? (
               <div className="space-y-4"><div className="h-8 w-64 animate-pulse rounded-lg bg-white/5" /><div className="grid grid-cols-4 gap-4">{[0, 1, 2, 3].map(i => <div key={i} className="h-28 animate-pulse rounded-2xl bg-white/5" />)}</div><div className="h-72 animate-pulse rounded-2xl bg-white/5" /></div>
-            ) : permitted ? <div key={page} className="fade-up"><Page /></div> : <Empty title="Access restricted" text={`Your role (${user.access}) does not have permission to view ${current.label}.`} />}
+            ) : permitted ? <div key={page} className="fade-up"><ErrorBoundary><Page /></ErrorBoundary></div> : <Empty title="Access restricted" text={`Your role (${user.access}) does not have permission to view ${current.label}.`} />}
           </div>
         </main>
       </div>
+    </div>
+  );
+}
+
+function ForgotPassword({ onBack }: { onBack: () => void }) {
+  const [email, setEmail] = useState('');
+  const [sent, setSent] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState('');
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!/^\S+@\S+\.\S+$/.test(email.trim())) return setErr('Enter your work email');
+    setErr(''); setBusy(true);
+    try {
+      await api.forgotPassword(email.trim());
+    } catch {
+      /* the reply is the same whether or not the account exists */
+    }
+    setBusy(false);
+    setSent(true);
+  };
+  return (
+    <div className="flex min-h-full items-center justify-center p-6">
+      <form onSubmit={submit} className="fade-up w-full max-w-sm">
+        <h2 className="font-display text-2xl font-semibold">Reset your password</h2>
+        {sent ? (
+          <p className="mt-4 text-sm text-neutral-400">If an account matches that email, a reset link has been sent to it. The link works once and expires in one hour.</p>
+        ) : (
+          <div className="mt-6 space-y-4">
+            <Field label="Work email" error={err}><Input type="email" autoComplete="email" value={email} onChange={e => setEmail(e.target.value)} /></Field>
+            <Button variant="primary" type="submit" className="h-10 w-full" disabled={busy}>{busy ? 'Sending…' : 'Send reset link'}</Button>
+          </div>
+        )}
+        <button type="button" onClick={onBack} className="mt-6 text-xs text-accent hover:underline">Back to sign in</button>
+      </form>
+    </div>
+  );
+}
+
+function ResetPassword({ token }: { token: string }) {
+  const [pw, setPw] = useState('');
+  const [pw2, setPw2] = useState('');
+  const [err, setErr] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [done, setDone] = useState(false);
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (pw.length < 8) return setErr('Use at least 8 characters');
+    if (pw !== pw2) return setErr('The two passwords do not match');
+    setErr(''); setBusy(true);
+    try {
+      await api.resetPassword(token, pw);
+      setDone(true);
+    } catch (ex) {
+      setErr(ex instanceof ApiError ? ex.message : 'Could not reset the password');
+    }
+    setBusy(false);
+  };
+  return (
+    <div className="flex min-h-full items-center justify-center p-6">
+      <form onSubmit={submit} className="fade-up w-full max-w-sm">
+        <h2 className="font-display text-2xl font-semibold">Choose a new password</h2>
+        {done ? (
+          <div className="mt-4 space-y-4">
+            <p className="text-sm text-neutral-400">Your password has been changed. Sign in with the new password.</p>
+            <Button variant="primary" className="h-10 w-full" onClick={() => { window.location.href = '/'; }}>Go to sign in</Button>
+          </div>
+        ) : (
+          <div className="mt-6 space-y-4">
+            <Field label="New password"><Input type="password" autoComplete="new-password" value={pw} onChange={e => setPw(e.target.value)} /></Field>
+            <Field label="Confirm new password" error={err}><Input type="password" autoComplete="new-password" value={pw2} onChange={e => setPw2(e.target.value)} /></Field>
+            <Button variant="primary" type="submit" className="h-10 w-full" disabled={busy}>{busy ? 'Saving…' : 'Save password'}</Button>
+          </div>
+        )}
+      </form>
     </div>
   );
 }

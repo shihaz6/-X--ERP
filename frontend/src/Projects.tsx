@@ -25,7 +25,7 @@ export default function Projects() {
     <div>
       <PageHeader title="Projects" sub={caps.editProjects ? `${ws.projects.length} engagements across ${new Set(ws.projects.map(p => p.clientId)).size} clients` : 'Projects you are working on'} actions={<>
         <Select value={filter} onChange={e => setFilter(e.target.value)} options={['All', 'Planning', 'Active', 'On Hold', 'Completed']} className="w-36" />
-        <div className="inline-flex rounded-lg border border-line bg-base p-0.5">{([['Cards', LayoutGrid], ['List', List]] as const).map(([v, I]) => <button key={v} onClick={() => setView(v)} className={`rounded-md p-1.5 ${view === v ? 'bg-raised text-white' : 'text-neutral-500'}`}><I size={15} /></button>)}</div>
+        <div className="inline-flex rounded-lg border border-line bg-base p-0.5">{([['Cards', LayoutGrid], ['List', List]] as const).map(([v, I]) => <button key={v} aria-label={`${v} view`} aria-pressed={view === v} onClick={() => setView(v)} className={`rounded-md p-1.5 ${view === v ? 'bg-raised text-white' : 'text-neutral-500'}`}><I size={15} /></button>)}</div>
         {caps.editProjects && <Button variant="primary" onClick={() => setCreating(true)}><Plus size={15} />New project</Button>}
       </>} />
       {!list.length ? (
@@ -88,7 +88,7 @@ function ProjectDetail({ project: p, back }: { project: Project; back: () => voi
       <button onClick={back} className="mb-4 flex items-center gap-1.5 text-xs text-neutral-500 hover:text-neutral-200"><ArrowLeft size={14} />All projects</button>
       <PageHeader title={p.name} sub={`${client?.name ?? '—'} · ${p.category} · ${fmtDate(p.start)} → ${fmtDate(p.end)}`} actions={<>
         <Select disabled={!editable} value={p.status} onChange={e => s.act(() => api.projects.setStatus(p.id, e.target.value), `Status updated to ${e.target.value}`)} options={['Planning', 'Active', 'On Hold', 'Completed'] as ProjectStatus[]} className="w-36" />
-        {editable && <Button variant="ghost" onClick={() => setDel(true)}><Trash2 size={15} /></Button>}
+        {editable && <Button variant="ghost" aria-label="Delete project" onClick={() => setDel(true)}><Trash2 size={15} /></Button>}
       </>} />
       <div className={`mb-4 grid grid-cols-2 gap-3 ${caps.finance ? 'md:grid-cols-5' : 'md:grid-cols-2'}`}>
         {[['Progress', pct(p) + '%'], ...(caps.finance ? [['Budget', money(p.budget, true)], ['Spent', money(p.spent, true)], ['Remaining', money(p.budget - p.spent, true)]] : []), ['Priority', p.priority]].map(([l, v]) => <Card key={l as string} className="px-4 py-3"><div className="text-xs text-neutral-500">{l}</div><div className="mt-1 font-display text-lg font-semibold">{v}</div></Card>)}

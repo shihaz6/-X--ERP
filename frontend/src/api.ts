@@ -1,4 +1,4 @@
-import type { FinanceAnalytics, Workspace, Member, Subscription } from './types';
+import type { FinanceAnalytics, Workspace, Member, Subscription, TimesheetSubmission, PageResult, Txn, Audit } from './types';
 
 // Base URL of the Spring Boot backend. Set VITE_API_URL at build time for deployments.
 const BASE = (import.meta.env.VITE_API_URL as string | undefined) ?? 'http://localhost:8080';
@@ -89,6 +89,8 @@ export const api = {
   login: (username: string, password: string) =>
     request<{ token: string; expiresAt: string; member: Member }>('POST', '/api/auth/login', { username, password }),
   logout: () => request<void>('POST', '/api/auth/logout'),
+  forgotPassword: (email: string) => request<void>('POST', '/api/auth/forgot-password', { email }),
+  resetPassword: (token: string, password: string) => request<void>('POST', '/api/auth/reset-password', { token, password }),
   workspace: () => request<Workspace>('GET', '/api/workspace'),
   financeAnalytics: () => request<FinanceAnalytics>('GET', '/api/analytics/finance'),
 
@@ -102,6 +104,7 @@ export const api = {
   clients: {
     create: (b: Record<string, unknown>) => request<void>('POST', '/api/clients', b),
     update: (id: string, b: Record<string, unknown>) => request<void>('PATCH', `/api/clients/${id}`, b),
+    remove: (id: string) => request<void>('DELETE', `/api/clients/${id}`),
     addNote: (id: string, b: { type: string; text: string }) => request<void>('POST', `/api/clients/${id}/notes`, b),
   },
 
@@ -127,6 +130,9 @@ export const api = {
   invoices: {
     create: (b: Record<string, unknown>) => request<void>('POST', '/api/invoices', b),
     setStatus: (id: string, status: string) => request<void>('PATCH', `/api/invoices/${id}`, { status }),
+    send: (id: string) => request<{ emailed: boolean }>('POST', `/api/invoices/${id}/send`),
+    remove: (id: string) => request<void>('DELETE', `/api/invoices/${id}`),
+    pdf: (id: string) => download(`/api/invoices/${id}/pdf`, `${id}.pdf`),
   },
 
   subscriptions: {
@@ -140,12 +146,16 @@ export const api = {
 
   transactions: {
     create: (b: Record<string, unknown>) => request<void>('POST', '/api/transactions', b),
+    page: (page: number, size: number) => request<PageResult<Txn>>('GET', `/api/transactions?${q({ page: String(page), size: String(size) })}`),
   },
 
   timesheets: {
     save: (weekStart: string, entries: { memberId: string; date: string; hours: number }[]) =>
       request<void>('PUT', '/api/timesheets', { weekStart, entries }),
     submit: (weekStart: string) => request<void>('POST', '/api/timesheets/submit', { weekStart }),
+    submissions: (weekStart: string) => request<TimesheetSubmission[]>('GET', `/api/timesheets/submissions?${q({ weekStart })}`),
+    decide: (memberId: string, weekStart: string, status: 'Approved' | 'Rejected') =>
+      request<void>('POST', `/api/timesheets/${memberId}/${weekStart}/decision`, { status }),
   },
 
   leave: {
@@ -163,6 +173,10 @@ export const api = {
     setStatus: (id: string, status: string) => request<void>('PATCH', `/api/documents/${id}`, { status }),
     download: (id: string, fileName: string, version?: number) =>
       download(`/api/documents/${id}/download${version ? `?${q({ version: String(version) })}` : ''}`, fileName),
+  },
+
+  audit: {
+    list: (page: number, size: number) => request<PageResult<Audit>>('GET', `/api/audit?${q({ page: String(page), size: String(size) })}`),
   },
 
   settings: {

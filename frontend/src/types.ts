@@ -104,3 +104,6 @@ export interface FinanceAnalytics {
   recurringLast30Days: number;
   monthlyRecurring: number;
 }
+
+export interface TimesheetSubmission { memberId: string; weekStart: string; status: 'Submitted' | 'Approved' | 'Rejected' }
+export interface PageResult<T> { items: T[]; total: number; page: number; size: number }

@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Plus, Clock, Mail } from 'lucide-react';
 import { Card, CardHead, PageHeader, Button, Badge, Table, Modal, Field, Input, Select, fmtDate, useStore, Tabs, Avatar, Progress, Empty } from './ui';
 import { api } from './api';
-import type { Leave, Member } from './types';
+import type { Leave, Member, TimesheetSubmission } from './types';
 
 const DAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
 const LEAVE_TYPES = ['Annual', 'Sick', 'Personal', 'Unpaid'];
@@ -22,6 +22,19 @@ export default function Team() {
   const { ws, caps } = s;
   const [tab, setTab] = useState<'Members' | 'Workload' | 'Timesheets' | 'Leave'>('Members');
   const [leaveOpen, setLeaveOpen] = useState(false);
+  const [subs, setSubs] = useState<TimesheetSubmission[]>([]);
+  useEffect(() => {
+    if (tab === 'Timesheets') api.timesheets.submissions(ws.weekStart).then(setSubs).catch(() => setSubs([]));
+  }, [tab, ws]);
+  const decideWeek = async (memberId: string, status: 'Approved' | 'Rejected') => {
+    try {
+      await api.timesheets.decide(memberId, ws.weekStart, status);
+      s.toast(`Timesheet ${status.toLowerCase()}`);
+      await s.refresh();
+    } catch (e) {
+      s.toast(e instanceof Error ? e.message : 'Could not update the timesheet', 'warn');
+    }
+  };
   const assigned = (id: string) => ws.projects.filter(p => p.team.includes(id) && p.status !== 'Completed');
   const days = weekDays(ws.weekStart);
   const hoursOf = (memberId: string, date: string) => ws.timesheet.find(t => t.memberId === memberId && t.date === date)?.hours ?? 0;
@@ -69,6 +82,24 @@ export default function Team() {
         <Card>
           <CardHead title={`Timesheet · week of ${fmtDate(ws.weekStart)}`} sub={caps.manager ? 'Edit hours inline; each change is saved when you leave the field' : 'Log your own hours; each change is saved when you leave the field'} right={<Button size="sm" variant="primary" onClick={async () => { try { await api.timesheets.submit(ws.weekStart); s.toast('Timesheet submitted for approval'); } catch (e) { s.toast(e instanceof Error ? e.message : 'Could not submit', 'warn'); } }}><Clock size={13} />Submit week</Button>} />
           <TimesheetGrid rows={timesheetRows} days={days} hoursOf={hoursOf} editable />
+          <div className="border-t border-line/60 px-5 py-4">
+            <div className="mb-2 text-xs font-medium text-neutral-400">Submissions for this week</div>
+            {subs.length ? subs.map(x => {
+              const m = ws.members.find(mm => mm.id === x.memberId);
+              return (
+                <div key={x.memberId} className="flex items-center justify-between py-1.5 text-sm">
+                  <span>{m?.name ?? 'Team member'}</span>
+                  <span className="flex items-center gap-2">
+                    <Badge>{x.status}</Badge>
+                    {caps.manager && x.status === 'Submitted' && <>
+                      <Button size="sm" variant="ghost" onClick={() => decideWeek(x.memberId, 'Rejected')}>Reject</Button>
+                      <Button size="sm" onClick={() => decideWeek(x.memberId, 'Approved')}>Approve</Button>
+                    </>}
+                  </span>
+                </div>
+              );
+            }) : <p className="text-xs text-neutral-500">Nothing has been submitted for this week yet.</p>}
+          </div>
         </Card>
       )}
 

@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useCallback, useRef, type ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useRef, useId, Component, type ReactNode } from 'react';
 import { X, Check, AlertTriangle, Loader2, Inbox } from 'lucide-react';
 import { api, ApiError } from './api';
 import type { Capabilities, Member, Role, Workspace } from './types';
@@ -186,6 +186,9 @@ export const Progress = ({ value, warn }: { value: number; warn?: boolean }) => 
 );
 
 export function Modal({ open, onClose, title, sub, children, footer, wide }: { open: boolean; onClose: () => void; title: string; sub?: string; children: ReactNode; footer?: ReactNode; wide?: boolean }) {
+  const titleId = useId();
+  const dialogRef = useRef<HTMLDivElement>(null);
+  useEffect(() => { if (open) dialogRef.current?.focus(); }, [open]);
   useEffect(() => {
     const k = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
     window.addEventListener('keydown', k);
@@ -194,10 +197,10 @@ export function Modal({ open, onClose, title, sub, children, footer, wide }: { o
   if (!open) return null;
   return (
     <div className="fixed inset-0 z-50 grid place-items-center bg-black/60 p-4 backdrop-blur-sm" onMouseDown={onClose}>
-      <div onMouseDown={e => e.stopPropagation()} className={`pop flex max-h-[90vh] w-full flex-col rounded-2xl border border-line bg-panel shadow-2xl ${wide ? 'max-w-3xl' : 'max-w-lg'}`}>
+      <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby={titleId} tabIndex={-1} onMouseDown={e => e.stopPropagation()} className={`pop flex max-h-[90vh] w-full flex-col rounded-2xl border border-line bg-panel shadow-2xl ${wide ? 'max-w-3xl' : 'max-w-lg'}`}>
         <div className="flex items-start justify-between border-b border-line/70 px-6 py-4">
-          <div><h2 className="text-base font-semibold">{title}</h2>{sub && <p className="mt-0.5 text-xs text-neutral-500">{sub}</p>}</div>
-          <button onClick={onClose} className="rounded-md p-1 text-neutral-500 hover:bg-white/5 hover:text-neutral-200"><X size={18} /></button>
+          <div><h2 id={titleId} className="text-base font-semibold">{title}</h2>{sub && <p className="mt-0.5 text-xs text-neutral-500">{sub}</p>}</div>
+          <button onClick={onClose} aria-label="Close dialog" className="rounded-md p-1 text-neutral-500 hover:bg-white/5 hover:text-neutral-200"><X size={18} /></button>
         </div>
         <div className="overflow-y-auto px-6 py-5">{children}</div>
         {footer && <div className="flex justify-end gap-2 border-t border-line/70 px-6 py-4">{footer}</div>}
@@ -396,4 +399,40 @@ export function exportCSV(name: string, rows: Record<string, unknown>[]) {
   a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
   a.download = `${name}.csv`;
   a.click();
+}
+
+/* ---------- error boundary: one failing screen must not blank the app ---------- */
+export class ErrorBoundary extends Component<{ children: ReactNode }, { error: Error | null }> {
+  state = { error: null as Error | null };
+  static getDerivedStateFromError(error: Error) {
+    return { error };
+  }
+  render() {
+    if (this.state.error) {
+      return (
+        <div role="alert" className="mx-auto max-w-lg py-16 text-center">
+          <h2 className="text-base font-semibold text-neutral-100">This section could not be displayed</h2>
+          <p className="mt-2 text-xs text-neutral-500">{this.state.error.message}</p>
+          <div className="mt-4 flex justify-center">
+            <Button onClick={() => this.setState({ error: null })}>Try again</Button>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+/* ---------- pager ---------- */
+export function Pager({ page, size, total, onPage }: { page: number; size: number; total: number; onPage: (p: number) => void }) {
+  const pages = Math.max(1, Math.ceil(total / size));
+  return (
+    <nav aria-label="Pagination" className="flex items-center justify-between px-5 py-3 text-xs text-neutral-400">
+      <span>{total} records · page {page + 1} of {pages}</span>
+      <div className="flex gap-2">
+        <Button size="sm" disabled={page <= 0} onClick={() => onPage(page - 1)}>Previous</Button>
+        <Button size="sm" disabled={page + 1 >= pages} onClick={() => onPage(page + 1)}>Next</Button>
+      </div>
+    </nav>
+  );
 }

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Plus, Search, Building2, Mail, Phone, MapPin, Bell, MessageSquare } from 'lucide-react';
-import { Card, PageHeader, Button, Badge, Table, Modal, Field, Input, Select, Textarea, money, fmtDate, useStore, Tabs, Empty } from './ui';
+import { Card, PageHeader, Button, Badge, Table, Modal, Field, Input, Select, Textarea, money, fmtDate, useStore, Tabs, Empty, Confirm } from './ui';
 import { api } from './api';
 import type { Client, Stage } from './types';
 
@@ -95,6 +95,7 @@ function ClientDrawer({ c, onClose, onStage, editable }: { c: Client; onClose: (
   const s = useStore();
   const [note, setNote] = useState('');
   const [type, setType] = useState('Meeting');
+  const [del, setDel] = useState(false);
   const projects = s.ws.projects.filter(p => p.clientId === c.id);
   const orders = s.ws.orders.filter(o => o.clientId === c.id);
   const docs = s.ws.documents.filter(d => d.clientId === c.id);
@@ -104,7 +105,7 @@ function ClientDrawer({ c, onClose, onStage, editable }: { c: Client; onClose: (
     if (ok) setNote('');
   };
   return (
-    <Modal open onClose={onClose} title={c.name} sub={`${c.industry} · client since ${fmtDate(c.since)}`} wide>
+    <Modal open onClose={onClose} title={c.name} sub={`${c.industry} · client since ${fmtDate(c.since)}`} wide footer={editable && <Button variant="ghost" onClick={() => setDel(true)}>Delete client</Button>}>
       <div className="grid gap-5 md:grid-cols-5">
         <div className="space-y-4 md:col-span-2">
           <div className="space-y-2.5 rounded-xl border border-line/60 bg-base/50 p-4 text-sm">
@@ -139,6 +140,7 @@ function ClientDrawer({ c, onClose, onStage, editable }: { c: Client; onClose: (
           </div>
         </div>
       </div>
+      <Confirm open={del} onClose={() => setDel(false)} danger cta="Delete client" title="Delete this client?" text="Only clients with no projects, orders, invoices, subscriptions or documents can be deleted." onConfirm={async () => { if (await s.act(() => api.clients.remove(c.id), 'Client deleted')) onClose(); }} />
     </Modal>
   );
 }

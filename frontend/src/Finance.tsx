@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Plus, Download, AlertCircle, Repeat, Send, CheckCheck } from 'lucide-react';
-import { Card, CardHead, PageHeader, Button, Badge, Table, Modal, Field, Input, Select, money, fmtDate, useStore, Tabs, Empty, Donut, PALETTE, BarChart, LineChart, exportCSV, Confirm } from './ui';
+import { Card, CardHead, PageHeader, Button, Badge, Table, Modal, Field, Input, Select, money, fmtDate, useStore, Tabs, Empty, Donut, PALETTE, BarChart, LineChart, exportCSV, Confirm, Pager } from './ui';
 import { api } from './api';
-import type { FinanceAnalytics, Invoice, Txn } from './types';
+import type { FinanceAnalytics, Invoice, Txn, PageResult } from './types';
 
 const CATS = { Income: ['Client Payment', 'Subscription', 'Consulting Fee', 'Other Income'], Expense: ['Salaries', 'Cloud Infrastructure', 'Software', 'Rent', 'Marketing', 'Travel', 'Other'] } as const;
 const SERVICE_LINES = ['Software Development', 'AI Solutions', 'Business Automation', 'Consulting', 'Enterprise Software'];
@@ -16,6 +16,11 @@ export default function Finance() {
   const [invFilter, setInvFilter] = useState('All');
   const [txFilter, setTxFilter] = useState('All');
   const [pay, setPay] = useState<Invoice | null>(null);
+  const [txPage, setTxPage] = useState<PageResult<Txn> | null>(null);
+  const [txPageNo, setTxPageNo] = useState(0);
+  useEffect(() => {
+    if (tab === 'Transactions') api.transactions.page(txPageNo, 25).then(setTxPage).catch(() => setTxPage(null));
+  }, [tab, txPageNo, ws]);
   const [fin, setFin] = useState<FinanceAnalytics | null>(null);
   const editable = caps.editFinance;
   const cname = (id: string) => ws.clients.find(c => c.id === id)?.name ?? '—';
@@ -27,7 +32,16 @@ export default function Finance() {
   const byService = SERVICE_LINES.map((sv, i) => ({ label: sv, value: ws.orders.filter(o => o.service === sv && o.status !== 'Cancelled').reduce((a, b) => a + b.amount, 0), color: PALETTE[i] }));
   const byServiceTotal = byService.reduce((a, b) => a + b.value, 0);
 
-  const markSent = (inv: Invoice) => s.act(() => api.invoices.setStatus(inv.id, 'Sent'), `${inv.id} sent to client`);
+  const sendInvoice = async (inv: Invoice) => {
+    try {
+      const r = await api.invoices.send(inv.id);
+      s.toast(r.emailed ? `${inv.id} emailed to the client` : `${inv.id} marked sent. Email is not configured on the server`);
+      await s.refresh();
+    } catch (e) {
+      s.toast(e instanceof Error ? e.message : 'Could not send the invoice', 'warn');
+    }
+  };
+  const downloadPdf = (inv: Invoice) => api.invoices.pdf(inv.id).catch(e => s.toast(e instanceof Error ? e.message : 'Download failed', 'warn'));
   const markPaid = (inv: Invoice) => s.act(() => api.invoices.setStatus(inv.id, 'Paid'), `${inv.id} marked as paid`);
 
   return (
@@ -75,21 +89,29 @@ export default function Finance() {
             { h: 'Due', r: i => <span className={i.status === 'Overdue' ? 'text-red-400' : ''}>{fmtDate(i.due)}</span> },
             { h: 'Amount', r: i => money(i.amount) },
             { h: 'Status', r: i => <Badge>{i.status}</Badge> },
-            { h: '', cls: 'text-right', r: i => editable && (i.status === 'Draft' ? <Button size="sm" onClick={() => markSent(i)}><Send size={12} />Send</Button> : i.status !== 'Paid' ? <Button size="sm" onClick={() => setPay(i)}><CheckCheck size={12} />Record payment</Button> : null) },
+            { h: '', cls: 'text-right', r: i => (
+              <div className="flex justify-end gap-1">
+                <Button size="sm" variant="ghost" onClick={() => downloadPdf(i)}>PDF</Button>
+                {editable && i.status === 'Draft' && <Button size="sm" onClick={() => sendInvoice(i)}><Send size={12} />Send</Button>}
+                {editable && i.status === 'Draft' && <Button size="sm" variant="ghost" onClick={() => s.act(() => api.invoices.remove(i.id), 'Draft deleted')}>Delete</Button>}
+                {editable && i.status !== 'Draft' && i.status !== 'Paid' && <Button size="sm" variant="ghost" onClick={() => sendInvoice(i)}>Email again</Button>}
+                {editable && i.status !== 'Draft' && i.status !== 'Paid' && <Button size="sm" onClick={() => setPay(i)}><CheckCheck size={12} />Record payment</Button>}
+              </div>) },
           ]} />
         </Card>
       )}
 
       {tab === 'Transactions' && (
         <Card>
-          <CardHead title="Income & expenses" right={<div className="flex gap-2"><Select value={txFilter} onChange={e => setTxFilter(e.target.value)} options={['All', 'Income', 'Expense']} className="h-8 w-28 text-xs" /><Button size="sm" onClick={() => { exportCSV('alchemyx-transactions', ws.transactions as unknown as Record<string, unknown>[]); s.toast('Transactions exported'); }}><Download size={13} />CSV</Button></div>} />
-          <Table rows={ws.transactions.filter((t: Txn) => txFilter === 'All' || t.type === txFilter)} empty={<Empty title="No transactions" text="Income and expenses you record appear here." />} cols={[
+          <CardHead title="Income & expenses" sub="Filter applies to the page you are viewing" right={<div className="flex gap-2"><Select value={txFilter} onChange={e => setTxFilter(e.target.value)} options={['All', 'Income', 'Expense']} className="h-8 w-28 text-xs" /><Button size="sm" onClick={() => { exportCSV('alchemyx-transactions', (txPage?.items ?? []) as unknown as Record<string, unknown>[]); s.toast('Transactions exported'); }}><Download size={13} />CSV</Button></div>} />
+          <Table rows={(txPage?.items ?? []).filter((t: Txn) => txFilter === 'All' || t.type === txFilter)} empty={<Empty title="No transactions" text="Income and expenses you record appear here." />} cols={[
             { h: 'Date', r: t => fmtDate(t.date) },
             { h: 'Description', r: t => t.desc },
             { h: 'Category', r: t => t.category },
             { h: 'Type', r: t => <Badge>{t.type}</Badge> },
             { h: 'Amount', cls: 'text-right', r: t => <span className={t.type === 'Income' ? 'text-emerald-400' : ''}>{t.type === 'Income' ? '+' : '−'}{money(t.amount)}</span> },
           ]} />
+          {txPage && <Pager page={txPage.page} size={txPage.size} total={txPage.total} onPage={setTxPageNo} />}
         </Card>
       )}
 
