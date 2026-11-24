@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Plus, Download, AlertCircle, Repeat, Send, CheckCheck } from 'lucide-react';
 import { Card, CardHead, PageHeader, Button, Badge, Table, Modal, Field, Input, Select, money, fmtDate, useStore, Tabs, Empty, Donut, PALETTE, BarChart, LineChart, exportCSV, Confirm } from './ui';
 import { api } from './api';
-import type { FinanceAnalytics, Invoice, Subscription, Txn } from './types';
+import type { FinanceAnalytics, Invoice, Txn } from './types';
 
 const CATS = { Income: ['Client Payment', 'Subscription', 'Consulting Fee', 'Other Income'], Expense: ['Salaries', 'Cloud Infrastructure', 'Software', 'Rent', 'Marketing', 'Travel', 'Other'] } as const;
 const SERVICE_LINES = ['Software Development', 'AI Solutions', 'Business Automation', 'Consulting', 'Enterprise Software'];
@@ -10,9 +10,7 @@ const SERVICE_LINES = ['Software Development', 'AI Solutions', 'Business Automat
 export default function Finance() {
   const s = useStore();
   const { ws, caps } = s;
-  const [tab, setTab] = useState<'Overview' | 'Invoices' | 'Subscriptions' | 'Transactions' | 'P&L'>('Overview');
-  const [subOpen, setSubOpen] = useState(false);
-  const [subs, setSubs] = useState<Subscription[]>([]);
+  const [tab, setTab] = useState<'Overview' | 'Invoices' | 'Transactions' | 'P&L'>('Overview');
   const [invOpen, setInvOpen] = useState(false);
   const [txOpen, setTxOpen] = useState(false);
   const [invFilter, setInvFilter] = useState('All');
@@ -23,7 +21,6 @@ export default function Finance() {
   const cname = (id: string) => ws.clients.find(c => c.id === id)?.name ?? '—';
 
   useEffect(() => { api.financeAnalytics().then(setFin).catch(() => setFin(null)); }, [ws]);
-  useEffect(() => { api.subscriptions.list().then(setSubs).catch(() => setSubs([])); }, [ws]);
 
   const outstandingInvoices = ws.invoices.filter(i => ['Sent', 'Overdue'].includes(i.status));
   const overdue = ws.invoices.filter(i => i.status === 'Overdue');
@@ -36,7 +33,7 @@ export default function Finance() {
   return (
     <div>
       <PageHeader title="Finance & Revenue" sub="Income, expenses, invoicing and cash flow · LKR" actions={<>
-        <Tabs tabs={['Overview', 'Invoices', 'Subscriptions', 'Transactions', 'P&L']} value={tab} onChange={setTab} />
+        <Tabs tabs={['Overview', 'Invoices', 'Transactions', 'P&L']} value={tab} onChange={setTab} />
         {editable && <><Button onClick={() => setTxOpen(true)}><Plus size={15} />Transaction</Button><Button variant="primary" onClick={() => setInvOpen(true)}><Plus size={15} />New invoice</Button></>}
       </>} />
       {!editable && <div className="mb-4 rounded-xl border border-line bg-white/[0.03] px-4 py-2.5 text-xs text-neutral-400">View-only. Your role can see finance data but cannot record transactions or issue invoices.</div>}
@@ -45,7 +42,7 @@ export default function Finance() {
         {[
           ['Outstanding balance', money(fin?.outstanding ?? 0, true), `${outstandingInvoices.length} invoices`],
           ['Overdue', money(fin?.overdue ?? 0, true), `${overdue.length} invoice(s)`],
-          ['Recurring revenue (MRR)', money(fin?.monthlyRecurring ?? 0, true), `${subs.filter(x => x.status === 'Active').length} active subscriptions`],
+          ['Recurring revenue (MRR)', money(fin?.monthlyRecurring ?? 0, true), 'from active subscriptions'],
           ['Cash position', money(fin?.cashPosition ?? 0, true), 'opening balance plus net flow'],
         ].map(([l, v, h], i) => (
           <Card key={l as string} className={`px-4 py-3 ${i === 1 && overdue.length ? 'border-red-500/30' : ''}`}><div className="flex items-center gap-1.5 text-xs text-neutral-500">{i === 1 && <AlertCircle size={12} className="text-red-400" />}{i === 2 && <Repeat size={12} />}{l}</div><div className="mt-1 font-display text-xl font-semibold">{v}</div><div className="text-[11px] text-neutral-500">{h}</div></Card>
@@ -83,25 +80,6 @@ export default function Finance() {
         </Card>
       )}
 
-      {tab === 'Subscriptions' && (
-        <Card>
-          <CardHead title="Client subscriptions" sub="Each billing run issues a draft invoice for the next month and moves the billing date forward" right={editable && <div className="flex gap-2"><Button size="sm" onClick={async () => { const r = await api.subscriptions.billDue().catch(() => null); if (r) s.toast(r.invoices ? `${r.invoices} invoice(s) drafted` : 'Nothing due for billing'); await s.refresh(); }}>Bill due subscriptions</Button><Button size="sm" variant="primary" onClick={() => setSubOpen(true)}><Plus size={13} />New subscription</Button></div>} />
-          <Table rows={subs} empty={<Empty title="No subscriptions yet" text="Add a client subscription to bill a monthly fee automatically." />} cols={[
-            { h: 'Client', r: x => x.clientName },
-            { h: 'Plan', r: x => x.plan },
-            { h: 'Monthly', r: x => money(x.monthlyAmount) },
-            { h: 'Next billing', r: x => fmtDate(x.nextBilling) },
-            { h: 'Status', r: x => <Badge>{x.status}</Badge> },
-            { h: '', cls: 'text-right', r: x => editable && x.status !== 'Cancelled' && (
-              <div className="flex justify-end gap-1">
-                {x.status === 'Active' && <Button size="sm" onClick={() => s.act(() => api.subscriptions.bill(x.id), 'Invoice drafted for next month')}>Bill now</Button>}
-                <Button size="sm" variant="ghost" onClick={() => s.act(() => api.subscriptions.setStatus(x.id, x.status === 'Active' ? 'Paused' : 'Active'), x.status === 'Active' ? 'Subscription paused' : 'Subscription resumed')}>{x.status === 'Active' ? 'Pause' : 'Resume'}</Button>
-                <Button size="sm" variant="ghost" onClick={() => s.act(() => api.subscriptions.setStatus(x.id, 'Cancelled'), 'Subscription cancelled')}>Cancel</Button>
-              </div>) },
-          ]} />
-        </Card>
-      )}
-
       {tab === 'Transactions' && (
         <Card>
           <CardHead title="Income & expenses" right={<div className="flex gap-2"><Select value={txFilter} onChange={e => setTxFilter(e.target.value)} options={['All', 'Income', 'Expense']} className="h-8 w-28 text-xs" /><Button size="sm" onClick={() => { exportCSV('alchemyx-transactions', ws.transactions as unknown as Record<string, unknown>[]); s.toast('Transactions exported'); }}><Download size={13} />CSV</Button></div>} />
@@ -130,7 +108,6 @@ export default function Finance() {
       )}
 
       <NewInvoice open={invOpen} onClose={() => setInvOpen(false)} />
-      <NewSubscription open={subOpen} onClose={() => setSubOpen(false)} />
       <NewTxn open={txOpen} onClose={() => setTxOpen(false)} />
       <Confirm open={!!pay} onClose={() => setPay(null)} title="Record payment" cta="Confirm payment" text={pay ? `Mark ${pay.id} (${money(pay.amount)}) from ${cname(pay.clientId)} as fully paid? An income transaction will be recorded.` : ''} onConfirm={() => pay && markPaid(pay)} />
     </div>
@@ -200,33 +177,3 @@ function NewTxn({ open, onClose }: { open: boolean; onClose: () => void }) {
   );
 }
 
-function NewSubscription({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const s = useStore();
-  const { ws } = s;
-  const [f, setF] = useState({ clientId: ws.clients[0]?.id ?? '', plan: '', monthlyAmount: '', start: new Date().toISOString().slice(0, 10) });
-  const [err, setErr] = useState<Record<string, string>>({});
-  const [saving, setSaving] = useState(false);
-  const save = async () => {
-    const e: Record<string, string> = {};
-    if (!f.clientId) e.clientId = 'Add a client first';
-    if (!f.plan.trim()) e.plan = 'Plan name is required';
-    if (!(Number(f.monthlyAmount) > 0)) e.monthlyAmount = 'Enter a monthly amount greater than 0';
-    if (!f.start) e.start = 'Start date is required';
-    setErr(e);
-    if (Object.keys(e).length) return;
-    setSaving(true);
-    const ok = await s.act(() => api.subscriptions.create({ clientId: f.clientId, plan: f.plan.trim(), monthlyAmount: Number(f.monthlyAmount), start: f.start }), 'Subscription added');
-    setSaving(false);
-    if (ok) { setF({ ...f, plan: '', monthlyAmount: '' }); onClose(); }
-  };
-  return (
-    <Modal open={open} onClose={onClose} title="New subscription" sub="The first invoice is drafted when you bill it" footer={<><Button variant="ghost" onClick={onClose}>Cancel</Button><Button variant="primary" onClick={save} disabled={saving}>{saving ? 'Saving…' : 'Add subscription'}</Button></>}>
-      <div className="grid grid-cols-2 gap-4">
-        <Field label="Client" error={err.clientId} className="col-span-2"><Select value={f.clientId} onChange={e => setF({ ...f, clientId: e.target.value })} options={ws.clients.map(c => [c.id, c.name] as [string, string])} /></Field>
-        <Field label="Plan" error={err.plan} className="col-span-2"><Input value={f.plan} onChange={e => setF({ ...f, plan: e.target.value })} placeholder="e.g. Managed support — Standard" /></Field>
-        <Field label="Monthly amount (LKR)" error={err.monthlyAmount}><Input type="number" min={0} value={f.monthlyAmount} onChange={e => setF({ ...f, monthlyAmount: e.target.value })} /></Field>
-        <Field label="Start date" error={err.start}><Input type="date" value={f.start} onChange={e => setF({ ...f, start: e.target.value })} /></Field>
-      </div>
-    </Modal>
-  );
-}

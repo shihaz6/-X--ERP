@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { LayoutDashboard, Users, FolderKanban, ShoppingCart, Wallet, UsersRound, FileText, BarChart3, Settings as Cog, Search, Bell, ChevronsLeft, ChevronDown, LogOut, Lock } from 'lucide-react';
+import { LayoutDashboard, Users, FolderKanban, ShoppingCart, Wallet, Repeat, UsersRound, FileText, BarChart3, Settings as Cog, Search, Bell, ChevronsLeft, ChevronDown, LogOut, Lock } from 'lucide-react';
 import { StoreProvider, useStore, Logo, Avatar, Button, Field, Input, Spinner, Empty, money } from './ui';
 import { api, session, ApiError } from './api';
 import type { Capabilities } from './types';
@@ -12,6 +12,7 @@ import Team from './Team';
 import Documents from './Documents';
 import Analytics from './Analytics';
 import Settings from './Settings';
+import Subscriptions from './Subscriptions';
 
 interface NavItem { id: string; label: string; icon: typeof LayoutDashboard; el: () => React.ReactElement; allowed: (c: Capabilities) => boolean }
 
@@ -21,6 +22,7 @@ const NAV: NavItem[] = [
   { id: 'projects', label: 'Projects', icon: FolderKanban, el: Projects, allowed: () => true },
   { id: 'orders', label: 'Orders', icon: ShoppingCart, el: Orders, allowed: c => c.orders },
   { id: 'finance', label: 'Finance', icon: Wallet, el: Finance, allowed: c => c.finance },
+  { id: 'subscriptions', label: 'Subscriptions', icon: Repeat, el: Subscriptions, allowed: c => c.finance },
   { id: 'team', label: 'Team', icon: UsersRound, el: Team, allowed: c => c.team },
   { id: 'documents', label: 'Documents', icon: FileText, el: Documents, allowed: () => true },
   { id: 'analytics', label: 'Analytics', icon: BarChart3, el: Analytics, allowed: c => c.finance },
