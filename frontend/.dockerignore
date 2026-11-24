@@ -1,4 +1,4 @@
 node_modules
 dist
-.figma
 *.log
+# Do not ignore .figma: vite.config.ts imports .figma/make/site.json at build time.

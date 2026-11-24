@@ -46,3 +46,13 @@ jobs:
       - run: pnpm build
       - name: Build image
         run: docker build -t alchemyx-erp-frontend .
+
+  image:
+    name: Combined image build (frontend served by backend)
+    runs-on: ubuntu-latest
+    needs: [backend, frontend]
+    steps:
+      - uses: actions/checkout@v4
+      # The deployable artifact: one container for the SPA + API. See render.yaml.
+      - name: Build image
+        run: docker build -t alchemyx-erp .

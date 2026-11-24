@@ -1,0 +1,45 @@
+# Render Blueprint: one free Docker web service, frontend + API on the same origin.
+# Database is external (Neon free Postgres) because Render's free Postgres expires after 30 days.
+# Docs: https://render.com/docs/blueprint-spec
+services:
+  - type: web
+    name: alchemyx-erp
+    runtime: docker
+    plan: free
+    region: singapore
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    autoDeploy: true
+    envVars:
+      # Neon connection string, converted to JDBC form:
+      # jdbc:postgresql://<host>/<db>?sslmode=require
+      - key: DB_URL
+        sync: false
+      - key: DB_USERNAME
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      # Free instances are small; a big pool just burns Neon connections.
+      - key: DB_POOL_SIZE
+        value: "3"
+      # Public URL of this service. Used for password-reset links.
+      - key: FRONTEND_URL
+        sync: false
+      # Same-origin deployment, so this only matters if you add another host.
+      - key: CORS_ALLOWED_ORIGINS
+        sync: false
+      - key: APP_TIMEZONE
+        value: Asia/Colombo
+      # Creates the first Super Admin on boot, when the database has no members.
+      # Delete BOOTSTRAP_ADMIN_PASSWORD after the first successful sign-in.
+      - key: BOOTSTRAP_ADMIN_USERNAME
+        sync: false
+      - key: BOOTSTRAP_ADMIN_EMAIL
+        sync: false
+      - key: BOOTSTRAP_ADMIN_PASSWORD
+        sync: false
+      - key: BOOTSTRAP_ADMIN_NAME
+        sync: false
+      # 512 MB instance: cap the heap so the container is not OOM-killed.
+      - key: JAVA_TOOL_OPTIONS
+        value: -XX:MaxRAMPercentage=60 -XX:+UseSerialGC

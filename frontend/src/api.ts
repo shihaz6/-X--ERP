@@ -1,7 +1,10 @@
 import type { FinanceAnalytics, Workspace, Member, Subscription, TimesheetSubmission, PageResult, Txn, Audit } from './types';
 
 // Base URL of the Spring Boot backend. Set VITE_API_URL at build time for deployments.
-const BASE = (import.meta.env.VITE_API_URL as string | undefined) ?? 'http://localhost:8080';
+// An empty string means "same origin", used by the single-container image that serves
+// this build from the Spring Boot jar.
+const configuredBase = import.meta.env.VITE_API_URL as string | undefined;
+const BASE = configuredBase !== undefined ? configuredBase : 'http://localhost:8080';
 const TOKEN_KEY = 'alchemyx.token';
 
 /** Session token kept in this browser only. Storage can be unavailable (private mode), so every access is guarded. */
