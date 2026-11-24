@@ -1,6 +1,6 @@
 package com.alchemyx.erp.repository;
 
-import com.alchemyx.erp.model.Entities.Document;
+import com.alchemyx.erp.model.Document;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -13,6 +13,6 @@ public interface DocumentRepository extends JpaRepository<Document, UUID> {
     List<Document> findAllByOrderByUpdatedOnDescNameAsc();
 
     @Modifying
-    @Query("update Document d set d.projectId = null where d.projectId = :projectId")
+    @Query("update ErpDocument d set d.projectId = null where d.projectId = :projectId")
     int detachProject(@Param("projectId") UUID projectId);
 }

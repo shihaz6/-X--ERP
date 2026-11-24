@@ -2,21 +2,14 @@ package com.alchemyx.erp.config;
 
 import com.alchemyx.erp.auth.AuthInterceptor;
 import com.alchemyx.erp.auth.CurrentMemberResolver;
-import java.time.Clock;
-import java.time.ZoneId;
 import java.util.List;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
-@EnableConfigurationProperties(AppProperties.class)
 public class AppConfig implements WebMvcConfigurer {
 
     private final AppProperties props;
@@ -27,17 +20,6 @@ public class AppConfig implements WebMvcConfigurer {
         this.props = props;
         this.authInterceptor = authInterceptor;
         this.currentMemberResolver = currentMemberResolver;
-    }
-
-    /** All business dates and timestamps are interpreted in the workspace timezone (Asia/Colombo). */
-    @Bean
-    public Clock clock() {
-        return Clock.system(ZoneId.of(props.timezone()));
-    }
-
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder(12);
     }
 
     @Override

@@ -6,7 +6,7 @@ import com.alchemyx.erp.api.Dtos.MemberDto;
 import com.alchemyx.erp.auth.AuthInterceptor;
 import com.alchemyx.erp.auth.AuthService;
 import com.alchemyx.erp.error.ApiException;
-import com.alchemyx.erp.model.Entities.Member;
+import com.alchemyx.erp.model.Member;
 import com.alchemyx.erp.service.MemberService;
 import com.alchemyx.erp.util.Fmt;
 import jakarta.servlet.http.HttpServletRequest;

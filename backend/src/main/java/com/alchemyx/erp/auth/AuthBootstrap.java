@@ -1,7 +1,7 @@
 package com.alchemyx.erp.auth;
 
 import com.alchemyx.erp.config.AppProperties;
-import com.alchemyx.erp.model.Entities.Member;
+import com.alchemyx.erp.model.Member;
 import com.alchemyx.erp.model.Role;
 import com.alchemyx.erp.repository.MemberRepository;
 import java.time.Clock;

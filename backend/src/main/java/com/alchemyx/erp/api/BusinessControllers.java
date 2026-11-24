@@ -30,7 +30,7 @@ import com.alchemyx.erp.api.Dtos.TeamAssignRequest;
 import com.alchemyx.erp.api.Dtos.TimesheetEntryDto;
 import com.alchemyx.erp.api.Dtos.TimesheetRequest;
 import com.alchemyx.erp.api.Dtos.TimesheetSubmitRequest;
-import com.alchemyx.erp.model.Entities.Member;
+import com.alchemyx.erp.model.Member;
 import com.alchemyx.erp.service.ClientService;
 import com.alchemyx.erp.service.DocumentService;
 import com.alchemyx.erp.service.InvoiceService;

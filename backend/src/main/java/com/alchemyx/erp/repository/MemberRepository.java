@@ -1,6 +1,6 @@
 package com.alchemyx.erp.repository;
 
-import com.alchemyx.erp.model.Entities.Member;
+import com.alchemyx.erp.model.Member;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;

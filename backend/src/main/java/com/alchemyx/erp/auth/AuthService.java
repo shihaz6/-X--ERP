@@ -2,8 +2,8 @@ package com.alchemyx.erp.auth;
 
 import com.alchemyx.erp.config.AppProperties;
 import com.alchemyx.erp.error.ApiException;
-import com.alchemyx.erp.model.Entities.Member;
-import com.alchemyx.erp.model.Entities.Session;
+import com.alchemyx.erp.model.Member;
+import com.alchemyx.erp.model.Session;
 import com.alchemyx.erp.repository.MemberRepository;
 import com.alchemyx.erp.repository.SessionRepository;
 import java.nio.charset.StandardCharsets;

@@ -1,6 +1,6 @@
 package com.alchemyx.erp.repository;
 
-import com.alchemyx.erp.model.Entities.ServiceOrder;
+import com.alchemyx.erp.model.ServiceOrder;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;

@@ -1,6 +1,6 @@
 package com.alchemyx.erp.repository;
 
-import com.alchemyx.erp.model.Entities.WorkspaceSettings;
+import com.alchemyx.erp.model.WorkspaceSettings;
 import jakarta.persistence.LockModeType;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;

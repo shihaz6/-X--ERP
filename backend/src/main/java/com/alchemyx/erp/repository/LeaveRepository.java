@@ -1,6 +1,6 @@
 package com.alchemyx.erp.repository;
 
-import com.alchemyx.erp.model.Entities.LeaveRequest;
+import com.alchemyx.erp.model.LeaveRequest;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;

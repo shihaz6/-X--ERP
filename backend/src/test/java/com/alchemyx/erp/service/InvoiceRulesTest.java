@@ -2,7 +2,7 @@ package com.alchemyx.erp.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.alchemyx.erp.model.Entities.Invoice;
+import com.alchemyx.erp.model.Invoice;
 import com.alchemyx.erp.util.Fmt;
 import java.math.BigDecimal;
 import java.time.LocalDate;

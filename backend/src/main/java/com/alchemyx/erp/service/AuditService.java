@@ -1,8 +1,8 @@
 package com.alchemyx.erp.service;
 
 import com.alchemyx.erp.api.Dtos.AuditDto;
-import com.alchemyx.erp.model.Entities.AuditEntry;
-import com.alchemyx.erp.model.Entities.Member;
+import com.alchemyx.erp.model.AuditEntry;
+import com.alchemyx.erp.model.Member;
 import com.alchemyx.erp.repository.AuditRepository;
 import com.alchemyx.erp.util.Fmt;
 import java.time.Clock;

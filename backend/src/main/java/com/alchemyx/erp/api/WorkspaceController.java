@@ -2,7 +2,7 @@ package com.alchemyx.erp.api;
 
 import com.alchemyx.erp.api.Dtos.FinanceAnalyticsDto;
 import com.alchemyx.erp.api.Dtos.WorkspaceDto;
-import com.alchemyx.erp.model.Entities.Member;
+import com.alchemyx.erp.model.Member;
 import com.alchemyx.erp.service.AnalyticsService;
 import com.alchemyx.erp.service.WorkspaceService;
 import org.springframework.web.bind.annotation.GetMapping;

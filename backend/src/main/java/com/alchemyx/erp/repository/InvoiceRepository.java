@@ -1,6 +1,6 @@
 package com.alchemyx.erp.repository;
 
-import com.alchemyx.erp.model.Entities.Invoice;
+import com.alchemyx.erp.model.Invoice;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 

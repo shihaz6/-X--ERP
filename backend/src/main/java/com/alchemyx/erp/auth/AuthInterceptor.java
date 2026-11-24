@@ -1,7 +1,7 @@
 package com.alchemyx.erp.auth;
 
 import com.alchemyx.erp.error.ApiException;
-import com.alchemyx.erp.model.Entities.Member;
+import com.alchemyx.erp.model.Member;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpMethod;

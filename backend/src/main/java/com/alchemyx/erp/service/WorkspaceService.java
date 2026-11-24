@@ -3,7 +3,7 @@ package com.alchemyx.erp.service;
 import com.alchemyx.erp.api.Dtos.CapabilitiesDto;
 import com.alchemyx.erp.api.Dtos.WorkspaceDto;
 import com.alchemyx.erp.auth.Permissions;
-import com.alchemyx.erp.model.Entities.Member;
+import com.alchemyx.erp.model.Member;
 import com.alchemyx.erp.model.Role;
 import com.alchemyx.erp.util.Fmt;
 import com.alchemyx.erp.util.Parse;
