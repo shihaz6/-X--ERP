@@ -11,6 +11,12 @@
   --color-line: #3a3a3a;
   --color-accent: #ff6a2d;
   --color-accent-soft: #ff6a2d1f;
+
+  /* Neutral text shades lifted for contrast on the dark surfaces (WCAG AA for body text). */
+  --color-neutral-400: #bdbdbd;
+  --color-neutral-500: #a3a3a3;
+  --color-neutral-600: #8f8f8f;
+  --color-neutral-700: #6b6b6b;
 }
 
 html, body, #root { height: 100%; }

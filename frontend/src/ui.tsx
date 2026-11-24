@@ -151,7 +151,7 @@ export function Button({ variant = 'outline', size = 'md', className = '', ...p 
     danger: 'bg-red-500/90 text-white hover:bg-red-500 font-semibold',
   }[variant];
   const s = size === 'sm' ? 'h-8 px-3 text-xs' : 'h-9 px-4 text-sm';
-  return <button {...p} className={`inline-flex items-center justify-center gap-2 rounded-lg transition-all duration-150 active:scale-[.98] disabled:pointer-events-none disabled:opacity-40 ${v} ${s} ${className}`} />;
+  return <button {...p} className={`inline-flex items-center justify-center gap-2 rounded-lg transition-all duration-150 active:scale-[.98] disabled:pointer-events-none disabled:opacity-50 ${v} ${s} ${className}`} />;
 }
 
 const TONES: Record<string, string> = {
