@@ -10,4 +10,6 @@ public interface ProjectRepository extends JpaRepository<Project, UUID> {
     List<Project> findAllByOrderByStartDateDesc();
 
     List<Project> findByTeamContainingOrderByStartDateDesc(UUID memberId);
+
+    boolean existsByClientId(UUID clientId);
 }

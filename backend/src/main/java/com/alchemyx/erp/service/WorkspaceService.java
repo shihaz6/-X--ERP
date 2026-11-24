@@ -78,11 +78,11 @@ public class WorkspaceService {
                 projects.list(me),
                 Permissions.orders(r) ? orders.list(me) : List.of(),
                 finance ? invoices.list(me) : List.of(),
-                finance ? ledger.list(me) : List.of(),
+                finance ? ledger.recent(me, 50) : List.of(),
                 documents.list(),
                 teamView ? team.leaves() : List.of(),
                 teamView ? team.timesheet(me, monday) : List.of(),
-                Permissions.admin(r) ? audit.recent(200) : List.of(),
+                Permissions.admin(r) ? audit.recent(25) : List.of(),
                 settings.get());
     }
 }

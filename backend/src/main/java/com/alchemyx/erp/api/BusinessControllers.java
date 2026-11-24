@@ -39,6 +39,13 @@ import com.alchemyx.erp.service.MemberService;
 import com.alchemyx.erp.service.OrderService;
 import com.alchemyx.erp.service.ProjectService;
 import com.alchemyx.erp.service.SettingsService;
+import com.alchemyx.erp.service.AuditService;
+import com.alchemyx.erp.service.InvoiceDeliveryService;
+import com.alchemyx.erp.auth.Permissions;
+import com.alchemyx.erp.api.Dtos.AuditDto;
+import com.alchemyx.erp.api.Dtos.PageDto;
+import com.alchemyx.erp.api.Dtos.SendInvoiceResponse;
+import com.alchemyx.erp.api.Dtos.TimesheetSubmissionDto;
 import com.alchemyx.erp.service.SubscriptionService;
 import com.alchemyx.erp.api.Dtos.BillDueResponse;
 import com.alchemyx.erp.api.Dtos.SubscriptionDto;
@@ -125,6 +132,11 @@ public final class BusinessControllers {
         @PatchMapping("/{id}")
         public void update(Member me, @PathVariable UUID id, @RequestBody ClientRequest req) {
             clients.update(me, id, req);
+        }
+
+        @DeleteMapping("/{id}")
+        public void delete(Member me, @PathVariable UUID id) {
+            clients.delete(me, id);
         }
 
         @PostMapping("/{id}/notes")
@@ -225,14 +237,34 @@ public final class BusinessControllers {
     @RequestMapping("/api/invoices")
     public static class Invoices {
         private final InvoiceService invoices;
+        private final InvoiceDeliveryService delivery;
 
-        public Invoices(InvoiceService invoices) {
+        public Invoices(InvoiceService invoices, InvoiceDeliveryService delivery) {
             this.invoices = invoices;
+            this.delivery = delivery;
         }
 
         @GetMapping
         public List<InvoiceDto> list(Member me) {
             return invoices.list(me);
+        }
+
+        @DeleteMapping("/{id}")
+        public void delete(Member me, @PathVariable String id) {
+            invoices.delete(me, id);
+        }
+
+        @PostMapping("/{id}/send")
+        public SendInvoiceResponse send(Member me, @PathVariable String id) {
+            return new SendInvoiceResponse(delivery.send(me, id).emailed());
+        }
+
+        @GetMapping(value = "/{id}/pdf", produces = "application/pdf")
+        public ResponseEntity<byte[]> pdf(Member me, @PathVariable String id) {
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, ContentDisposition.inline().filename(id + ".pdf").build().toString())
+                    .contentType(MediaType.APPLICATION_PDF)
+                    .body(delivery.pdf(me, id));
         }
 
         @PostMapping
@@ -294,8 +326,9 @@ public final class BusinessControllers {
         }
 
         @GetMapping
-        public List<LedgerDto> list(Member me) {
-            return ledger.list(me);
+        public PageDto<LedgerDto> list(Member me, @RequestParam(defaultValue = "0") int page,
+                                       @RequestParam(defaultValue = "25") int size) {
+            return ledger.page(me, page, size);
         }
 
         @PostMapping
@@ -327,6 +360,17 @@ public final class BusinessControllers {
         @PostMapping("/timesheets/submit")
         public void submit(Member me, @RequestBody TimesheetSubmitRequest req) {
             team.submitTimesheet(me, req.weekStart());
+        }
+
+        @GetMapping("/timesheets/submissions")
+        public List<TimesheetSubmissionDto> submissions(Member me, @RequestParam String weekStart) {
+            return team.submissions(Validation.date(weekStart, "Week start"));
+        }
+
+        @PostMapping("/timesheets/{memberId}/{weekStart}/decision")
+        public void decide(Member me, @PathVariable UUID memberId, @PathVariable String weekStart,
+                           @RequestBody StatusRequest req) {
+            team.decideWeek(me, memberId, weekStart, req.status());
         }
 
         @GetMapping("/leave")
@@ -391,6 +435,23 @@ public final class BusinessControllers {
                     .header(HttpHeaders.CONTENT_DISPOSITION,
                             ContentDisposition.attachment().filename(file.fileName()).build().toString())
                     .body(file.content());
+        }
+    }
+
+    @RestController
+    @RequestMapping("/api/audit")
+    public static class Audit {
+        private final AuditService audit;
+
+        public Audit(AuditService audit) {
+            this.audit = audit;
+        }
+
+        @GetMapping
+        public PageDto<AuditDto> list(Member me, @RequestParam(defaultValue = "0") int page,
+                                      @RequestParam(defaultValue = "50") int size) {
+            Permissions.require(Permissions.admin(me.getRole()), "Only a Super Admin can view the audit log.");
+            return audit.page(page, size);
         }
     }
 

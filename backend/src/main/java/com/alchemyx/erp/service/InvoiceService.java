@@ -135,6 +135,18 @@ public class InvoiceService {
         audit.record(actor, "Generated invoice " + inv.getId() + " from " + o.getId());
     }
 
+    /** Only drafts can be deleted. Sent and paid invoices stay on record. */
+    @Transactional
+    public void delete(Member actor, String id) {
+        Permissions.require(Permissions.editFinance(actor.getRole()), "Your role cannot delete invoices.");
+        Invoice inv = invoices.findById(id).orElseThrow(() -> ApiException.notFound("Invoice not found"));
+        if (!"Draft".equals(inv.getStatus())) {
+            throw ApiException.conflict("Only draft invoices can be deleted. Sent and paid invoices are kept on record.");
+        }
+        invoices.delete(inv);
+        audit.record(actor, "Deleted draft invoice " + id);
+    }
+
     /** Draft invoice with a server-issued number. Used by recurring billing. */
     @Transactional
     public String issueInvoice(Member actor, UUID clientId, String description, BigDecimal amount, LocalDate due) {

@@ -1,18 +1,21 @@
 package com.alchemyx.erp.api;
 
+import com.alchemyx.erp.api.Dtos.ForgotPasswordRequest;
 import com.alchemyx.erp.api.Dtos.LoginRequest;
 import com.alchemyx.erp.api.Dtos.LoginResponse;
 import com.alchemyx.erp.api.Dtos.MemberDto;
+import com.alchemyx.erp.api.Dtos.ResetPasswordRequest;
 import com.alchemyx.erp.auth.AuthInterceptor;
 import com.alchemyx.erp.auth.AuthService;
 import com.alchemyx.erp.error.ApiException;
 import com.alchemyx.erp.model.Member;
 import com.alchemyx.erp.service.MemberService;
+import com.alchemyx.erp.service.PasswordResetService;
 import com.alchemyx.erp.util.Fmt;
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.Clock;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -23,11 +26,13 @@ public class AuthController {
 
     private final AuthService auth;
     private final MemberService members;
+    private final PasswordResetService resets;
     private final Clock clock;
 
-    public AuthController(AuthService auth, MemberService members, Clock clock) {
+    public AuthController(AuthService auth, MemberService members, PasswordResetService resets, Clock clock) {
         this.auth = auth;
         this.members = members;
+        this.resets = resets;
         this.clock = clock;
     }
 
@@ -52,5 +57,16 @@ public class AuthController {
             throw ApiException.unauthorized("Sign in to continue");
         }
         return members.dto(me);
+    }
+
+    /** Always answers the same way, so it cannot be used to find out which emails have accounts. */
+    @PostMapping("/forgot-password")
+    public void forgotPassword(@RequestBody ForgotPasswordRequest req) {
+        resets.request(req.email());
+    }
+
+    @PostMapping("/reset-password")
+    public void resetPassword(@RequestBody ResetPasswordRequest req) {
+        resets.reset(req.token(), req.password());
     }
 }

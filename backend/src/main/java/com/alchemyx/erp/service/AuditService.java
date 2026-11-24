@@ -1,6 +1,9 @@
 package com.alchemyx.erp.service;
 
 import com.alchemyx.erp.api.Dtos.AuditDto;
+import com.alchemyx.erp.api.Dtos.PageDto;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import com.alchemyx.erp.model.AuditEntry;
 import com.alchemyx.erp.model.Member;
 import com.alchemyx.erp.repository.AuditRepository;
@@ -32,6 +35,14 @@ public class AuditService {
                 actor == null ? null : actor.getId(),
                 actor == null ? "System" : actor.getName(),
                 action));
+    }
+
+    @Transactional(readOnly = true)
+    public PageDto<AuditDto> page(int page, int size) {
+        Page<AuditEntry> p = audit.findAllByOrderByOccurredAtDescIdDesc(
+                PageRequest.of(Math.max(0, page), Math.min(100, Math.max(1, size))));
+        return new PageDto<>(p.map(e -> new AuditDto(Fmt.stamp(e.getOccurredAt(), clock.getZone()), e.getMemberName(), e.getAction())).getContent(),
+                p.getTotalElements(), p.getNumber(), p.getSize());
     }
 
     @Transactional(readOnly = true)

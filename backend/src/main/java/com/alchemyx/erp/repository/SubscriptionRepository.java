@@ -10,5 +10,7 @@ public interface SubscriptionRepository extends JpaRepository<Subscription, UUID
 
     List<Subscription> findAllByOrderByNextBillingDateAsc();
 
+    boolean existsByClientId(UUID clientId);
+
     List<Subscription> findByStatusAndNextBillingDateLessThanEqual(String status, LocalDate date);
 }

@@ -12,6 +12,8 @@ public interface DocumentRepository extends JpaRepository<Document, UUID> {
 
     List<Document> findAllByOrderByUpdatedOnDescNameAsc();
 
+    boolean existsByClientId(UUID clientId);
+
     @Modifying
     @Query("update ErpDocument d set d.projectId = null where d.projectId = :projectId")
     int detachProject(@Param("projectId") UUID projectId);

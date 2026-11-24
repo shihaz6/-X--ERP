@@ -12,6 +12,8 @@ public interface ServiceOrderRepository extends JpaRepository<ServiceOrder, Stri
 
     List<ServiceOrder> findAllByOrderByIdDesc();
 
+    boolean existsByClientId(UUID clientId);
+
     @Modifying
     @Query("update ServiceOrder o set o.projectId = null where o.projectId = :projectId")
     int detachProject(@Param("projectId") UUID projectId);

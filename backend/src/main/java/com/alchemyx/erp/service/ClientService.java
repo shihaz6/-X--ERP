@@ -10,6 +10,11 @@ import com.alchemyx.erp.model.Client;
 import com.alchemyx.erp.model.ClientNote;
 import com.alchemyx.erp.model.Member;
 import com.alchemyx.erp.repository.ClientRepository;
+import com.alchemyx.erp.repository.DocumentRepository;
+import com.alchemyx.erp.repository.InvoiceRepository;
+import com.alchemyx.erp.repository.ProjectRepository;
+import com.alchemyx.erp.repository.ServiceOrderRepository;
+import com.alchemyx.erp.repository.SubscriptionRepository;
 import com.alchemyx.erp.util.Fmt;
 import com.alchemyx.erp.util.Parse;
 import com.alchemyx.erp.util.Validation;
@@ -30,12 +35,24 @@ public class ClientService {
     private static final List<String> NOTE_TYPES = List.of("Meeting", "Call", "Email");
 
     private final ClientRepository clients;
+    private final ProjectRepository projects;
+    private final ServiceOrderRepository orders;
+    private final InvoiceRepository invoices;
+    private final SubscriptionRepository subscriptions;
+    private final DocumentRepository documents;
     private final MemberService members;
     private final AuditService audit;
     private final Clock clock;
 
-    public ClientService(ClientRepository clients, MemberService members, AuditService audit, Clock clock) {
+    public ClientService(ClientRepository clients, ProjectRepository projects, ServiceOrderRepository orders,
+                         InvoiceRepository invoices, SubscriptionRepository subscriptions, DocumentRepository documents,
+                         MemberService members, AuditService audit, Clock clock) {
         this.clients = clients;
+        this.projects = projects;
+        this.orders = orders;
+        this.invoices = invoices;
+        this.subscriptions = subscriptions;
+        this.documents = documents;
         this.members = members;
         this.audit = audit;
         this.clock = clock;
@@ -108,6 +125,19 @@ public class ClientService {
         if (req.city() != null) c.setCity(req.city().trim());
         if (req.value() != null) c.setValue(Validation.nonNegative(req.value(), "Deal value"));
         if (req.followUp() != null) c.setFollowUp(Validation.optionalDate(req.followUp(), "Follow-up date"));
+    }
+
+    @Transactional
+    public void delete(Member actor, UUID id) {
+        Permissions.require(Permissions.editCrm(actor.getRole()), "Your role cannot delete clients.");
+        Client c = find(id);
+        boolean linked = projects.existsByClientId(id) || orders.existsByClientId(id) || invoices.existsByClientId(id)
+                || subscriptions.existsByClientId(id) || documents.existsByClientId(id);
+        if (linked) {
+            throw ApiException.conflict("This client still has projects, orders, invoices, subscriptions or documents. Remove those first.");
+        }
+        clients.delete(c);
+        audit.record(actor, "Deleted client " + c.getName());
     }
 
     @Transactional

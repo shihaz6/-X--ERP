@@ -106,6 +106,16 @@ public class SubscriptionService {
     @Transactional
     public int billDue(Member actor) {
         Permissions.require(Permissions.editFinance(actor.getRole()), "Your role cannot bill subscriptions.");
+        return billDueInternal(actor);
+    }
+
+    /** Same as billDue, run by the daily scheduler with no signed-in user. */
+    @Transactional
+    public int billDueAsSystem() {
+        return billDueInternal(null);
+    }
+
+    private int billDueInternal(Member actor) {
         LocalDate today = LocalDate.now(clock);
         int count = 0;
         for (Subscription s : subscriptions.findByStatusAndNextBillingDateLessThanEqual("Active", today)) {

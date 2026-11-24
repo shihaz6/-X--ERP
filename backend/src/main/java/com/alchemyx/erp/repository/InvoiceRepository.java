@@ -7,4 +7,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface InvoiceRepository extends JpaRepository<Invoice, String> {
 
     List<Invoice> findAllByOrderByIssuedOnDescIdDesc();
+
+    boolean existsByClientId(java.util.UUID clientId);
 }

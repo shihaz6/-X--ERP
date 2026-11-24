@@ -2,6 +2,9 @@ package com.alchemyx.erp.service;
 
 import com.alchemyx.erp.api.Dtos.LedgerDto;
 import com.alchemyx.erp.api.Dtos.LedgerRequest;
+import com.alchemyx.erp.api.Dtos.PageDto;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import com.alchemyx.erp.auth.Permissions;
 import com.alchemyx.erp.error.ApiException;
 import com.alchemyx.erp.model.LedgerEntry;
@@ -54,6 +57,22 @@ public class LedgerService {
                 e.getType(),
                 e.getAmount(),
                 e.getProjectId() == null ? null : e.getProjectId().toString());
+    }
+
+    /** Newest entries first, for the dashboard and the workspace snapshot. */
+    @Transactional(readOnly = true)
+    public List<LedgerDto> recent(Member viewer, int limit) {
+        Permissions.require(Permissions.finance(viewer.getRole()), "Your role cannot view transactions.");
+        return ledger.findAllByOrderByTxnDateDescCreatedAtDesc(PageRequest.of(0, limit)).getContent()
+                .stream().map(LedgerService::toDto).toList();
+    }
+
+    @Transactional(readOnly = true)
+    public PageDto<LedgerDto> page(Member viewer, int page, int size) {
+        Permissions.require(Permissions.finance(viewer.getRole()), "Your role cannot view transactions.");
+        Page<LedgerEntry> p = ledger.findAllByOrderByTxnDateDescCreatedAtDesc(
+                PageRequest.of(Math.max(0, page), Math.min(100, Math.max(1, size))));
+        return new PageDto<>(p.map(LedgerService::toDto).getContent(), p.getTotalElements(), p.getNumber(), p.getSize());
     }
 
     @Transactional

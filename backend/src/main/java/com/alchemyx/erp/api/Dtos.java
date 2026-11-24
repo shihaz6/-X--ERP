@@ -116,4 +116,16 @@ public final class Dtos {
                                   String start, String nextBilling, String status) {}
     public record SubscriptionRequest(String clientId, String plan, BigDecimal monthlyAmount, String start) {}
     public record BillDueResponse(int invoices) {}
+
+    // ---- paging ----
+    public record PageDto<T>(List<T> items, long total, int page, int size) {}
+
+    // ---- password reset ----
+    public record ForgotPasswordRequest(String email) {}
+    public record ResetPasswordRequest(String token, String password) {}
+
+    // ---- timesheet approval ----
+    public record TimesheetSubmissionDto(String memberId, String weekStart, String status) {}
+
+    public record SendInvoiceResponse(boolean emailed) {}
 }

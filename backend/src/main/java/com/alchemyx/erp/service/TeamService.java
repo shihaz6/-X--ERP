@@ -12,6 +12,9 @@ import com.alchemyx.erp.model.TimesheetEntry;
 import com.alchemyx.erp.repository.LeaveRepository;
 import com.alchemyx.erp.repository.MemberRepository;
 import com.alchemyx.erp.repository.TimesheetRepository;
+import com.alchemyx.erp.repository.TimesheetSubmissionRepository;
+import com.alchemyx.erp.model.TimesheetSubmission;
+import com.alchemyx.erp.api.Dtos.TimesheetSubmissionDto;
 import com.alchemyx.erp.util.Fmt;
 import com.alchemyx.erp.util.Parse;
 import com.alchemyx.erp.util.Validation;
@@ -33,14 +36,16 @@ public class TeamService {
     private static final int MAX_HOURS_PER_DAY = 16;
 
     private final TimesheetRepository timesheets;
+    private final TimesheetSubmissionRepository submissions;
     private final LeaveRepository leaves;
     private final MemberRepository members;
     private final AuditService audit;
     private final Clock clock;
 
-    public TeamService(TimesheetRepository timesheets, LeaveRepository leaves, MemberRepository members,
-                       AuditService audit, Clock clock) {
+    public TeamService(TimesheetRepository timesheets, TimesheetSubmissionRepository submissions, LeaveRepository leaves,
+                       MemberRepository members, AuditService audit, Clock clock) {
         this.timesheets = timesheets;
+        this.submissions = submissions;
         this.leaves = leaves;
         this.members = members;
         this.audit = audit;
@@ -66,6 +71,10 @@ public class TeamService {
         }
         for (TimesheetEntryDto e : req.entries()) {
             UUID memberId = Parse.uuid(e.memberId(), "Member");
+            if (submissions.findById(new TimesheetSubmission.Key(memberId, monday))
+                    .map(x -> "Approved".equals(x.getStatus())).orElse(false)) {
+                throw ApiException.conflict("This week has been approved and can no longer be changed");
+            }
             if (!memberId.equals(actor.getId())) {
                 Permissions.require(Permissions.manager(actor.getRole()), "You can only log your own hours.");
             }
@@ -83,10 +92,46 @@ public class TeamService {
         }
     }
 
+    /** Members submit their week; a manager then approves or rejects it. */
     @Transactional
     public void submitTimesheet(Member actor, String weekStart) {
         LocalDate monday = Parse.monday(Validation.date(weekStart, "Week start"));
+        TimesheetSubmission.Key key = new TimesheetSubmission.Key(actor.getId(), monday);
+        TimesheetSubmission existing = submissions.findById(key).orElse(null);
+        if (existing != null && "Approved".equals(existing.getStatus())) {
+            throw ApiException.conflict("This week has already been approved");
+        }
+        if (existing == null) {
+            submissions.save(new TimesheetSubmission(actor.getId(), monday, Instant.now(clock)));
+        } else {
+            existing.setStatus("Submitted");
+            existing.setSubmittedAt(Instant.now(clock));
+        }
         audit.record(actor, "Submitted weekly timesheet for week of " + Fmt.date(monday));
+    }
+
+    @Transactional(readOnly = true)
+    public List<TimesheetSubmissionDto> submissions(LocalDate weekStart) {
+        return submissions.findByWeekStart(Parse.monday(weekStart)).stream()
+                .map(x -> new TimesheetSubmissionDto(x.getMemberId().toString(), Fmt.date(x.getWeekStart()), x.getStatus()))
+                .toList();
+    }
+
+    @Transactional
+    public void decideWeek(Member actor, UUID memberId, String weekStart, String status) {
+        Permissions.require(Permissions.manager(actor.getRole()), "Only managers can approve timesheets.");
+        LocalDate monday = Parse.monday(Validation.date(weekStart, "Week start"));
+        TimesheetSubmission s = submissions.findById(new TimesheetSubmission.Key(memberId, monday))
+                .orElseThrow(() -> ApiException.notFound("No submitted timesheet for that week"));
+        if (!"Submitted".equals(s.getStatus())) {
+            throw ApiException.conflict("This timesheet has already been decided");
+        }
+        String next = Validation.oneOf(status, "Status", List.of("Approved", "Rejected"));
+        s.setStatus(next);
+        s.setDecidedBy(actor.getId());
+        s.setDecidedAt(Instant.now(clock));
+        String name = members.findById(memberId).map(m -> m.getName()).orElse("team member");
+        audit.record(actor, next + " timesheet for " + name + " (week of " + Fmt.date(monday) + ")");
     }
 
     @Transactional(readOnly = true)
