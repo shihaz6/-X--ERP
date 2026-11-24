@@ -13,7 +13,7 @@ import Documents from './Documents';
 import Analytics from './Analytics';
 import Settings from './Settings';
 
-interface NavItem { id: string; label: string; icon: typeof LayoutDashboard; el: () => JSX.Element; allowed: (c: Capabilities) => boolean }
+interface NavItem { id: string; label: string; icon: typeof LayoutDashboard; el: () => React.ReactElement; allowed: (c: Capabilities) => boolean }
 
 const NAV: NavItem[] = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, el: Dashboard, allowed: () => true },
