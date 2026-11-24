@@ -1,0 +1,37 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+target/
+*.class
+
+# Frontend tooling
+frontend/.vite/
+frontend/*.local
+frontend/.env*
+!frontend/.env.example
+
+# Backend / IDE
+backend/.mvn/wrapper/maven-wrapper.jar
+.idea/
+*.iml
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Secrets and local config (never commit credentials)
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+application-local.yml
+application-local.properties
+
+# Logs and temp
+*.log
+npm-debug.log*
+pnpm-debug.log*
+.claude/settings.local.json

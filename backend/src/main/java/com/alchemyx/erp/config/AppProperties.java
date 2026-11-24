@@ -1,0 +1,17 @@
+package com.alchemyx.erp.config;
+
+import java.time.Duration;
+import java.util.List;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+
+@ConfigurationProperties(prefix = "app")
+public record AppProperties(
+        String timezone,
+        List<String> corsAllowedOrigins,
+        Duration sessionTtl,
+        long maxUploadBytes,
+        BootstrapAdmin bootstrapAdmin) {
+
+    /** Optional. Creates the first Super Admin when the members table is empty. */
+    public record BootstrapAdmin(String email, String password, String name) {}
+}
