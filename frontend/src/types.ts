@@ -34,6 +34,11 @@ export interface Invoice {
   status: InvoiceStatus; description: string;
 }
 
+export interface Subscription {
+  id: string; clientId: string; clientName: string; plan: string; monthlyAmount: number;
+  start: string; nextBilling: string; status: 'Active' | 'Paused' | 'Cancelled';
+}
+
 export interface Txn {
   id: string; date: string; desc: string; category: string; type: 'Income' | 'Expense'; amount: number; projectId: string | null;
 }
@@ -97,4 +102,5 @@ export interface FinanceAnalytics {
   outstanding: number;
   overdue: number;
   recurringLast30Days: number;
+  monthlyRecurring: number;
 }

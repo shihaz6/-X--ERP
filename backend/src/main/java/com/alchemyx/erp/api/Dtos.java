@@ -108,5 +108,12 @@ public final class Dtos {
     public record CashPointDto(String label, BigDecimal balance) {}
     public record FinanceAnalyticsDto(List<MonthPointDto> months, List<FiscalYearDto> fiscalYears,
                                       List<CashPointDto> cash, BigDecimal cashPosition, BigDecimal outstanding,
-                                      BigDecimal overdue, BigDecimal recurringLast30Days) {}
+                                      BigDecimal overdue, BigDecimal recurringLast30Days,
+                                      BigDecimal monthlyRecurring) {}
+
+    // ---- subscriptions ----
+    public record SubscriptionDto(String id, String clientId, String clientName, String plan, BigDecimal monthlyAmount,
+                                  String start, String nextBilling, String status) {}
+    public record SubscriptionRequest(String clientId, String plan, BigDecimal monthlyAmount, String start) {}
+    public record BillDueResponse(int invoices) {}
 }

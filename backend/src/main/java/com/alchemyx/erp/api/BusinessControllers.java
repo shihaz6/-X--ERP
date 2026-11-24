@@ -39,6 +39,10 @@ import com.alchemyx.erp.service.MemberService;
 import com.alchemyx.erp.service.OrderService;
 import com.alchemyx.erp.service.ProjectService;
 import com.alchemyx.erp.service.SettingsService;
+import com.alchemyx.erp.service.SubscriptionService;
+import com.alchemyx.erp.api.Dtos.BillDueResponse;
+import com.alchemyx.erp.api.Dtos.SubscriptionDto;
+import com.alchemyx.erp.api.Dtos.SubscriptionRequest;
 import com.alchemyx.erp.service.TeamService;
 import com.alchemyx.erp.util.Parse;
 import com.alchemyx.erp.util.Validation;
@@ -240,6 +244,43 @@ public final class BusinessControllers {
         @PatchMapping("/{id}")
         public void setStatus(Member me, @PathVariable String id, @RequestBody StatusRequest req) {
             invoices.setStatus(me, id, req.status());
+        }
+    }
+
+    @RestController
+    @RequestMapping("/api/subscriptions")
+    public static class Subscriptions {
+        private final SubscriptionService subscriptions;
+
+        public Subscriptions(SubscriptionService subscriptions) {
+            this.subscriptions = subscriptions;
+        }
+
+        @GetMapping
+        public List<SubscriptionDto> list(Member me) {
+            return subscriptions.list(me);
+        }
+
+        @PostMapping
+        @ResponseStatus(HttpStatus.CREATED)
+        public void create(Member me, @RequestBody SubscriptionRequest req) {
+            subscriptions.create(me, req);
+        }
+
+        @PatchMapping("/{id}")
+        public void setStatus(Member me, @PathVariable UUID id, @RequestBody StatusRequest req) {
+            subscriptions.setStatus(me, id, req.status());
+        }
+
+        @PostMapping("/{id}/bill")
+        @ResponseStatus(HttpStatus.CREATED)
+        public void bill(Member me, @PathVariable UUID id) {
+            subscriptions.bill(me, id);
+        }
+
+        @PostMapping("/bill-due")
+        public BillDueResponse billDue(Member me) {
+            return new BillDueResponse(subscriptions.billDue(me));
         }
     }
 

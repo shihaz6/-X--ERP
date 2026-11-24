@@ -1,4 +1,4 @@
-import type { FinanceAnalytics, Workspace, Member } from './types';
+import type { FinanceAnalytics, Workspace, Member, Subscription } from './types';
 
 // Base URL of the Spring Boot backend. Set VITE_API_URL at build time for deployments.
 const BASE = (import.meta.env.VITE_API_URL as string | undefined) ?? 'http://localhost:8080';
@@ -127,6 +127,15 @@ export const api = {
   invoices: {
     create: (b: Record<string, unknown>) => request<void>('POST', '/api/invoices', b),
     setStatus: (id: string, status: string) => request<void>('PATCH', `/api/invoices/${id}`, { status }),
+  },
+
+  subscriptions: {
+    list: () => request<Subscription[]>('GET', '/api/subscriptions'),
+    create: (b: { clientId: string; plan: string; monthlyAmount: number; start: string }) =>
+      request<void>('POST', '/api/subscriptions', b),
+    setStatus: (id: string, status: string) => request<void>('PATCH', `/api/subscriptions/${id}`, { status }),
+    bill: (id: string) => request<void>('POST', `/api/subscriptions/${id}/bill`),
+    billDue: () => request<{ invoices: number }>('POST', '/api/subscriptions/bill-due'),
   },
 
   transactions: {

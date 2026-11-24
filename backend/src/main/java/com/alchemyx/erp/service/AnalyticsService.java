@@ -12,6 +12,7 @@ import com.alchemyx.erp.model.Member;
 import com.alchemyx.erp.repository.ClientRepository;
 import com.alchemyx.erp.repository.InvoiceRepository;
 import com.alchemyx.erp.repository.LedgerRepository;
+import com.alchemyx.erp.repository.SubscriptionRepository;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.YearMonth;
@@ -32,10 +33,12 @@ public class AnalyticsService {
     private final InvoiceRepository invoices;
     private final ClientRepository clients;
     private final SettingsService settings;
+    private final SubscriptionRepository subscriptions;
     private final Clock clock;
 
     public AnalyticsService(LedgerRepository ledger, InvoiceRepository invoices, ClientRepository clients,
-                            SettingsService settings, Clock clock) {
+                            SettingsService settings, SubscriptionRepository subscriptions, Clock clock) {
+        this.subscriptions = subscriptions;
         this.ledger = ledger;
         this.invoices = invoices;
         this.clients = clients;
@@ -119,7 +122,12 @@ public class AnalyticsService {
                 && "Subscription".equals(e.getCategory())
                 && !e.getTxnDate().isBefore(thirtyDaysAgo));
 
-        return new FinanceAnalyticsDto(months, fiscalYears, cash, cashPosition, outstanding, overdue, recurring);
+        BigDecimal monthlyRecurring = subscriptions.findAll().stream()
+                .filter(s -> "Active".equals(s.getStatus()))
+                .map(s -> s.getMonthlyAmount())
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        return new FinanceAnalyticsDto(months, fiscalYears, cash, cashPosition, outstanding, overdue, recurring, monthlyRecurring);
     }
 
     private static BigDecimal sum(List<LedgerEntry> entries, Predicate<LedgerEntry> match) {

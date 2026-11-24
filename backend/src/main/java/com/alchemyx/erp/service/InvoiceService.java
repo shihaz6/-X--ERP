@@ -18,6 +18,7 @@ import com.alchemyx.erp.repository.WorkspaceSettingsRepository;
 import com.alchemyx.erp.util.Fmt;
 import com.alchemyx.erp.util.Parse;
 import com.alchemyx.erp.util.Validation;
+import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -132,6 +133,16 @@ public class InvoiceService {
                 Instant.now(clock));
         invoices.save(inv);
         audit.record(actor, "Generated invoice " + inv.getId() + " from " + o.getId());
+    }
+
+    /** Draft invoice with a server-issued number. Used by recurring billing. */
+    @Transactional
+    public String issueInvoice(Member actor, UUID clientId, String description, BigDecimal amount, LocalDate due) {
+        LocalDate issued = LocalDate.now(clock);
+        Invoice inv = new Invoice(nextInvoiceNumber(issued), clientId, null, description, amount, issued, due, "Draft", Instant.now(clock));
+        invoices.save(inv);
+        audit.record(actor, "Created invoice " + inv.getId());
+        return inv.getId();
     }
 
     @Transactional
