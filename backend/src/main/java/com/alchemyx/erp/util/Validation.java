@@ -36,6 +36,15 @@ public final class Validation {
         return v;
     }
 
+    /** Login username: 3-40 characters, lower case letters, digits, dot, underscore or dash. */
+    public static String username(String value) {
+        String v = required(value, "Username").toLowerCase(Locale.ROOT);
+        if (!v.matches("^[a-z0-9._-]{3,40}$")) {
+            throw ApiException.badRequest("Username must be 3-40 characters: letters, digits, dot, underscore or dash");
+        }
+        return v;
+    }
+
     public static String oneOf(String value, String field, Collection<String> allowed) {
         String v = required(value, field);
         if (!allowed.contains(v)) {

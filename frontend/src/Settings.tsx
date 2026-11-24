@@ -103,7 +103,7 @@ function AccountsSection() {
 
 function AddMemberModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const s = useStore();
-  const blank = { name: '', email: '', password: '', access: 'Developer' as Role, jobTitle: '', department: '', capacityHours: '40' };
+  const blank = { name: '', username: '', email: '', password: '', access: 'Developer' as Role, jobTitle: '', department: '', capacityHours: '40' };
   const [f, setF] = useState(blank);
   const [err, setErr] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
@@ -111,12 +111,13 @@ function AddMemberModal({ open, onClose }: { open: boolean; onClose: () => void 
   const save = async () => {
     const e: Record<string, string> = {};
     if (!f.name.trim()) e.name = 'Name is required';
+    if (!/^[a-z0-9._-]{3,40}$/i.test(f.username)) e.username = '3-40 characters: letters, digits, . _ -';
     if (!/^\S+@\S+\.\S+$/.test(f.email)) e.email = 'Enter a valid email address';
     if (f.password.length < 8) e.password = 'At least 8 characters';
     setErr(e);
     if (Object.keys(e).length) return;
     setSaving(true);
-    const ok = await s.act(() => api.members.create({ name: f.name.trim(), email: f.email.trim(), password: f.password, access: f.access, jobTitle: f.jobTitle.trim(), department: f.department.trim(), capacityHours: Number(f.capacityHours) || 40 }), `${f.name} added`);
+    const ok = await s.act(() => api.members.create({ name: f.name.trim(), username: f.username.trim().toLowerCase(), email: f.email.trim(), password: f.password, access: f.access, jobTitle: f.jobTitle.trim(), department: f.department.trim(), capacityHours: Number(f.capacityHours) || 40 }), `${f.name} added`);
     setSaving(false);
     if (ok) { setF(blank); onClose(); }
   };
@@ -124,6 +125,7 @@ function AddMemberModal({ open, onClose }: { open: boolean; onClose: () => void 
     <Modal open={open} onClose={onClose} title="Add team member" sub="Share the initial password with the person securely" footer={<><Button variant="ghost" onClick={onClose}>Cancel</Button><Button variant="primary" onClick={save} disabled={saving}>{saving ? 'Adding…' : 'Add member'}</Button></>}>
       <div className="grid grid-cols-2 gap-4">
         <Field label="Full name" error={err.name}><Input value={f.name} onChange={u('name')} /></Field>
+        <Field label="Username" error={err.username}><Input value={f.username} onChange={u('username')} placeholder="e.g. shanika.f" /></Field>
         <Field label="Work email" error={err.email}><Input type="email" value={f.email} onChange={u('email')} /></Field>
         <Field label="Initial password" error={err.password} className="col-span-2"><Input type="password" value={f.password} onChange={u('password')} /></Field>
         <Field label="Access role"><Select value={f.access} onChange={u('access')} options={ROLES} /></Field>

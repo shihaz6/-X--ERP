@@ -99,6 +99,10 @@ public class MemberService {
     public MemberDto create(Member actor, MemberCreateRequest req) {
         Permissions.require(Permissions.admin(actor.getRole()), "Only a Super Admin can add team members.");
         String name = Validation.required(req.name(), "Name");
+        String username = Validation.username(req.username());
+        if (members.existsByUsernameIgnoreCase(username)) {
+            throw ApiException.conflict("That username is already taken");
+        }
         String email = Validation.email(req.email());
         if (members.existsByEmailIgnoreCase(email)) {
             throw ApiException.conflict("A team member with this email already exists");
@@ -111,6 +115,7 @@ public class MemberService {
         Member m = new Member(
                 UUID.randomUUID(),
                 name,
+                username,
                 email,
                 encoder.encode(password),
                 role,

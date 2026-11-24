@@ -34,6 +34,7 @@ app:
   max-upload-bytes: 26214400
   # Used only when the database has no members yet, to create the first Super Admin.
   bootstrap-admin:
+    username: ${BOOTSTRAP_ADMIN_USERNAME:}
     email: ${BOOTSTRAP_ADMIN_EMAIL:}
     password: ${BOOTSTRAP_ADMIN_PASSWORD:}
     name: ${BOOTSTRAP_ADMIN_NAME:Administrator}

@@ -38,6 +38,7 @@ INSERT INTO service_categories (name, position) VALUES
 CREATE TABLE members (
     id              UUID         PRIMARY KEY,
     name            VARCHAR(120) NOT NULL,
+    username        VARCHAR(40)  NOT NULL UNIQUE CHECK (username ~ '^[a-z0-9._-]{3,40}$'),
     email           VARCHAR(200) NOT NULL UNIQUE,
     password_hash   VARCHAR(100) NOT NULL,
     role            VARCHAR(20)  NOT NULL CHECK (role IN ('SUPER_ADMIN', 'FINANCE_MANAGER', 'PROJECT_MANAGER', 'DEVELOPER')),

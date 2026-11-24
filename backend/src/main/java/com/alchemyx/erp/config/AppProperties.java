@@ -13,5 +13,5 @@ public record AppProperties(
         BootstrapAdmin bootstrapAdmin) {
 
     /** Optional. Creates the first Super Admin when the members table is empty. */
-    public record BootstrapAdmin(String email, String password, String name) {}
+    public record BootstrapAdmin(String username, String email, String password, String name) {}
 }

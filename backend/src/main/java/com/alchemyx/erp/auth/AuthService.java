@@ -42,8 +42,10 @@ public class AuthService {
     public record Login(String token, Instant expiresAt, Member member) {}
 
     @Transactional
-    public Login login(String email, String password) {
-        Member member = members.findByEmailIgnoreCase(email == null ? "" : email.trim())
+    public Login login(String identifier, String password) {
+        String id = identifier == null ? "" : identifier.trim();
+        // Accept either the username or the email address.
+        Member member = (id.contains("@") ? members.findByEmailIgnoreCase(id) : members.findByUsernameIgnoreCase(id))
                 .filter(Member::isActive)
                 .orElse(null);
         // Same message for unknown email, wrong password and deactivated account.

@@ -33,7 +33,7 @@ public class AuthController {
 
     @PostMapping("/login")
     public LoginResponse login(@RequestBody LoginRequest req) {
-        AuthService.Login result = auth.login(req.email(), req.password());
+        AuthService.Login result = auth.login(req.username(), req.password());
         return new LoginResponse(
                 result.token(),
                 Fmt.stamp(result.expiresAt(), clock.getZone()),

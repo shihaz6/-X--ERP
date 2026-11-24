@@ -86,14 +86,14 @@ export async function download(path: string, fileName: string) {
 const q = (params: Record<string, string>) => new URLSearchParams(params).toString();
 
 export const api = {
-  login: (email: string, password: string) =>
-    request<{ token: string; expiresAt: string; member: Member }>('POST', '/api/auth/login', { email, password }),
+  login: (username: string, password: string) =>
+    request<{ token: string; expiresAt: string; member: Member }>('POST', '/api/auth/login', { username, password }),
   logout: () => request<void>('POST', '/api/auth/logout'),
   workspace: () => request<Workspace>('GET', '/api/workspace'),
   financeAnalytics: () => request<FinanceAnalytics>('GET', '/api/analytics/finance'),
 
   members: {
-    create: (b: { name: string; email: string; password: string; access: string; jobTitle: string; department: string; capacityHours: number }) =>
+    create: (b: { name: string; username: string; email: string; password: string; access: string; jobTitle: string; department: string; capacityHours: number }) =>
       request<Member>('POST', '/api/members', b),
     update: (id: string, b: Partial<{ access: string; jobTitle: string; department: string; capacityHours: number; availability: string }>) =>
       request<Member>('PATCH', `/api/members/${id}`, b),

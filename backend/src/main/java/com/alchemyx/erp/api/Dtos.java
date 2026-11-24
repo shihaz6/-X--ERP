@@ -9,14 +9,15 @@ public final class Dtos {
     private Dtos() {}
 
     // ---- auth ----
-    public record LoginRequest(String email, String password) {}
+    /** username may be the member's username or their email address. */
+    public record LoginRequest(String username, String password) {}
     public record LoginResponse(String token, String expiresAt, MemberDto member) {}
 
     // ---- members ----
     /** role is the job title shown on cards; access is the system role label. */
     public record MemberDto(String id, String name, String email, String role, String dept, String access,
                             int hours, int capacity, String status, String initials) {}
-    public record MemberCreateRequest(String name, String email, String password, String access,
+    public record MemberCreateRequest(String name, String username, String email, String password, String access,
                                       String jobTitle, String department, Integer capacityHours) {}
     public record MemberUpdateRequest(String access, String jobTitle, String department, Integer capacityHours,
                                       String availability) {}

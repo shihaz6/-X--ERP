@@ -12,5 +12,9 @@ public interface MemberRepository extends JpaRepository<Member, UUID> {
 
     Optional<Member> findByEmailIgnoreCase(String email);
 
+    Optional<Member> findByUsernameIgnoreCase(String username);
+
     boolean existsByEmailIgnoreCase(String email);
+
+    boolean existsByUsernameIgnoreCase(String username);
 }

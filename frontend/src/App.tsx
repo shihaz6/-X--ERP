@@ -45,17 +45,17 @@ export default function App() {
 }
 
 function Login({ onDone }: { onDone: () => void }) {
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [pw, setPw] = useState('');
   const [err, setErr] = useState('');
   const [busy, setBusy] = useState(false);
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!/^\S+@\S+\.\S+$/.test(email)) return setErr('Enter a valid work email');
+    if (!username.trim()) return setErr('Enter your username or work email');
     if (!pw) return setErr('Enter your password');
     setErr(''); setBusy(true);
     try {
-      const res = await api.login(email.trim(), pw);
+      const res = await api.login(username.trim(), pw);
       session.set(res.token);
       onDone();
     } catch (e) {
@@ -80,7 +80,7 @@ function Login({ onDone }: { onDone: () => void }) {
           <h2 className="font-display text-2xl font-semibold">Sign in to AlchemyX ERP</h2>
           <p className="mb-6 mt-1 text-sm text-neutral-500">Internal workspace. Use the account your administrator created for you.</p>
           <div className="space-y-4">
-            <Field label="Work email"><Input type="email" autoComplete="username" value={email} onChange={e => setEmail(e.target.value)} /></Field>
+            <Field label="Username or work email"><Input autoComplete="username" value={username} onChange={e => setUsername(e.target.value)} /></Field>
             <Field label="Password" error={err}><Input type="password" autoComplete="current-password" value={pw} onChange={e => setPw(e.target.value)} /></Field>
             <Button variant="primary" type="submit" className="h-10 w-full" disabled={busy}>{busy ? <><Spinner />Signing in…</> : 'Sign in'}</Button>
           </div>
