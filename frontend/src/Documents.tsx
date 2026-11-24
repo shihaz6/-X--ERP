@@ -121,7 +121,7 @@ function UploadModal({ open, onClose }: { open: boolean; onClose: () => void }) 
         <Field label="Document name" className="col-span-2"><Input value={f.name} onChange={e => setF({ ...f, name: e.target.value })} placeholder="Defaults to the file name" /></Field>
         <Field label="Category"><Select value={f.category} onChange={e => setF({ ...f, category: e.target.value as DocCategory })} options={CATS} /></Field>
         <Field label="Client"><Select value={f.clientId} onChange={e => setF({ ...f, clientId: e.target.value, projectId: '' })} options={ws.clients.map(c => [c.id, c.name] as [string, string])} /></Field>
-        <Field label="Project" className="col-span-2"><Select value={f.projectId} onChange={e => setF({ ...f, projectId: e.target.value })} options={[['', 'None'], ...ws.projects.filter(p => p.clientId === f.clientId).map(p => [p.id, p.name] as [string, string])]} /></Field>
+        <Field label="Project" className="col-span-2"><Select value={f.projectId} onChange={e => setF({ ...f, projectId: e.target.value })} options={[['', 'None'], ...ws.projects.map(p => [p.id, p.name] as [string, string])]} /></Field>
       </div>
     </Modal>
   );

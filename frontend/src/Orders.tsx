@@ -107,7 +107,7 @@ function NewOrder({ open, onClose }: { open: boolean; onClose: () => void }) {
       <div className="grid grid-cols-2 gap-4">
         <Field label="Order title" error={err.title} className="col-span-2"><Input value={f.title} onChange={u('title')} /></Field>
         <Field label="Client"><Select value={f.clientId} onChange={u('clientId')} options={ws.clients.map(c => [c.id, c.name] as [string, string])} /></Field>
-        <Field label="Link to project"><Select value={f.projectId} onChange={u('projectId')} options={[['', 'None'], ...ws.projects.filter(p => p.clientId === f.clientId).map(p => [p.id, p.name] as [string, string])]} /></Field>
+        <Field label="Link to project"><Select value={f.projectId} onChange={u('projectId')} options={[['', 'None'], ...ws.projects.filter(p => !p.clientId || p.clientId === f.clientId).map(p => [p.id, p.name] as [string, string])]} /></Field>
         <Field label="Service"><Select value={f.service} onChange={u('service')} options={ws.settings.services} /></Field>
         <Field label="Price (LKR)" error={err.amount}><Input type="number" value={f.amount} onChange={u('amount')} /></Field>
         <Field label="Delivery date" error={err.delivery} className="col-span-2"><Input type="date" value={f.delivery} onChange={u('delivery')} /></Field>
