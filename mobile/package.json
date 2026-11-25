@@ -1,0 +1,19 @@
+{
+  "name": "alchemyx-connect",
+  "private": true,
+  "version": "1.0.0",
+  "description": "AlchemyX Connect: native Android shell for the AlchemyX ERP web app",
+  "scripts": {
+    "build:web": "pnpm --dir ../frontend build",
+    "sync": "pnpm run build:web && cap sync android",
+    "open": "cap open android"
+  },
+  "dependencies": {
+    "@capacitor/android": "^7.4.0",
+    "@capacitor/core": "^7.4.0"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^7.4.0",
+    "typescript": "5.7"
+  }
+}
