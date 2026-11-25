@@ -9,7 +9,7 @@ import { AuditService } from '../audit/audit.service';
 import { AppConfig, CONFIG } from '../config.provider';
 import { Inject } from '@nestjs/common';
 
-export const ORDER_STATUSES = ['Pending', 'Approved', 'In Progress', 'Delivered', 'Completed', 'Cancelled'] as const;
+const ORDER_STATUSES = ['Pending', 'Approved', 'In Progress', 'Delivered', 'Completed', 'Cancelled'] as const;
 
 export interface OrderDto {
   id: string;
@@ -34,7 +34,7 @@ export interface OrderInput {
   spec?: string | null;
 }
 
-export interface OrderRow {
+interface OrderRow {
   id: string;
   title: string;
   client_id: string;
@@ -113,7 +113,7 @@ export class OrdersService {
   }
 }
 
-export function toDto(o: OrderRow): OrderDto {
+function toDto(o: OrderRow): OrderDto {
   return {
     id: o.id,
     title: o.title,
