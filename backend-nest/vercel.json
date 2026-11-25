@@ -1,0 +1,10 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "installCommand": "npm ci",
+  "buildCommand": "npm run build",
+  "rewrites": [{ "source": "/(.*)", "destination": "/api" }],
+  "crons": [
+    { "path": "/api/jobs/billing", "schedule": "30 0 * * *" },
+    { "path": "/api/jobs/overdue", "schedule": "30 1 * * *" }
+  ]
+}
