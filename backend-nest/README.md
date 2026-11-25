@@ -1,5 +1,7 @@
 # AlchemyX ERP API (NestJS)
 
+日本語版は [README.ja.md](./README.ja.md) を参照してください。
+
 NestJS (TypeScript) rebuild of the Spring Boot backend in `../backend`. It talks to the same PostgreSQL
 schema (Neon in production) and serves the same `/api` contract, so the web app and the AlchemyX Connect
 phone app work against it unchanged.
