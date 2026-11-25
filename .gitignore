@@ -30,6 +30,13 @@ Thumbs.db
 application-local.yml
 application-local.properties
 
+# Mobile (Capacitor / Android) generated output and local SDK paths
+mobile/android/.gradle/
+mobile/android/app/build/
+mobile/android/build/
+mobile/android/local.properties
+mobile/android/.idea/
+
 # Logs and temp
 *.log
 npm-debug.log*
