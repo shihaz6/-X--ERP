@@ -54,9 +54,9 @@ export class DocumentsController {
   ): Promise<void> {
     const v = version === undefined || version === '' ? undefined : Number(version);
     const file = await this.documents.download(id, Number.isInteger(v) ? v : undefined);
-    const type = /^[\w.+-]+\/[\w.+-]+$/.test(file.contentType) ? file.contentType : 'application/octet-stream';
+    // Always a binary attachment: the uploader's type is never sent back, so the browser cannot render it.
     res.set({
-      'Content-Type': type,
+      'Content-Type': 'application/octet-stream',
       'Content-Disposition': `attachment; filename="${file.fileName.replace(/"/g, '')}"; filename*=UTF-8''${encodeURIComponent(file.fileName)}`,
       'Content-Length': String(file.content.length),
     });
