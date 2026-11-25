@@ -8,7 +8,7 @@ import * as V from '../common/validation';
 import { addDays, mondayOf } from '../common/time';
 import { AuditService } from '../audit/audit.service';
 
-export const LEAVE_TYPES = ['Annual', 'Sick', 'Personal', 'Unpaid'] as const;
+const LEAVE_TYPES = ['Annual', 'Sick', 'Personal', 'Unpaid'] as const;
 const MAX_HOURS_PER_DAY = 16;
 
 export interface TimesheetEntryDto {
