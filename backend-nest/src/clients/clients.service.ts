@@ -10,10 +10,10 @@ import { todayIn } from '../common/time';
 import { AuditService } from '../audit/audit.service';
 import { MembersService } from '../members/members.service';
 
-export const STAGES = ['Lead', 'Qualified', 'Proposal', 'Negotiation', 'Won', 'Lost'] as const;
+const STAGES = ['Lead', 'Qualified', 'Proposal', 'Negotiation', 'Won', 'Lost'] as const;
 const NOTE_TYPES = ['Meeting', 'Call', 'Email'] as const;
 
-export interface ClientNoteDto {
+interface ClientNoteDto {
   date: string | null;
   type: string;
   text: string;
