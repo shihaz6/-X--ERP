@@ -15,3 +15,4 @@ export const forbidden = (message: string) => new ApiError(HttpStatus.FORBIDDEN,
 export const notFound = (message: string) => new ApiError(HttpStatus.NOT_FOUND, message);
 export const conflict = (message: string) => new ApiError(HttpStatus.CONFLICT, message);
 export const tooLarge = (message: string) => new ApiError(HttpStatus.PAYLOAD_TOO_LARGE, message);
+export const tooManyRequests = (message: string) => new ApiError(HttpStatus.TOO_MANY_REQUESTS, message);
