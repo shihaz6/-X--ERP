@@ -5,6 +5,8 @@ import { invoiceNumber, humanSize, longDate, initials, round2 } from '../../src/
 import { parseDurationMs, loadConfig } from '../../src/config';
 import { effectiveStatus } from '../../src/invoices/invoices.service';
 import { sha256 } from '../../src/auth/auth.service';
+import { describeError } from '../../src/common/error.filter';
+import { badRequest } from '../../src/common/errors';
 
 describe('dates', () => {
   it('adds months and clamps the day to the end of the month', () => {
@@ -147,6 +149,18 @@ describe('configuration', () => {
     expect(cfg.overdueCron).toBe('0 0 7 * * *');
     expect(cfg.corsAllowedOrigins).toEqual(expect.arrayContaining(['https://localhost', 'capacitor://localhost']));
     expect(cfg.maxUploadBytes).toBe(26214400);
+  });
+});
+
+describe('error mapping', () => {
+  it('maps database integrity violations to 409 with the Spring message', () => {
+    expect(describeError({ code: '23505' })).toEqual({ status: 409, body: { error: 'The change conflicts with existing data.' } });
+    expect(describeError({ code: '23503' }).status).toBe(409);
+  });
+
+  it('keeps HTTP exceptions as they are and hides unknown failures', () => {
+    expect(describeError(badRequest('Client is required'))).toEqual({ status: 400, body: { error: 'Client is required' } });
+    expect(describeError(new Error('boom'))).toEqual({ status: 500, body: { error: 'Internal server error' } });
   });
 });
 
