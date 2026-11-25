@@ -1,4 +1,4 @@
-import { defineConfig, type HtmlTagDescriptor, type Plugin } from 'vite'
+import { defineConfig, loadEnv, type HtmlTagDescriptor, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import path from 'node:path'
@@ -24,6 +24,7 @@ react(),
       figmaErrorOverlayReplay(),
       figmaReactRefreshBoundaryFallback(),
       figmaMakeKitPlugin({ storiesGlob: '/src/**/*.stories.{ts,tsx,js,jsx}' }),
+      contentSecurityPolicy(loadEnv(mode, process.cwd(), 'VITE_')),
     ],
     resolve: {
       alias: {
@@ -46,6 +47,36 @@ react(),
     },
   }
 })
+
+/**
+ * Production builds only. Adds a Content-Security-Policy so that scripts and styles can come only from
+ * this site and the page can call only the API. This limits what injected code could do with the
+ * sign-in token kept in browser storage.
+ */
+function contentSecurityPolicy(env: Record<string, string>): Plugin {
+  const apiOrigin = env.VITE_API_URL ? new URL(env.VITE_API_URL).origin : ''
+  const policy = [
+    "default-src 'self'",
+    "script-src 'self'",
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+    "font-src 'self' https://fonts.gstatic.com data:",
+    "img-src 'self' data: blob:",
+    `connect-src 'self' ${apiOrigin}`.trim(),
+    "object-src 'none'",
+    "base-uri 'self'",
+    "form-action 'self'",
+  ].join('; ')
+  return {
+    name: 'content-security-policy',
+    apply: 'build',
+    transformIndexHtml() {
+      return {
+        html: undefined,
+        tags: [{ tag: 'meta', attrs: { 'http-equiv': 'Content-Security-Policy', content: policy }, injectTo: 'head-prepend' }],
+      }
+    },
+  }
+}
 
 type FigmaSiteConfiguration = {
   title?: string
