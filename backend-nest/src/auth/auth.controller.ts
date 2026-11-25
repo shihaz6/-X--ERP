@@ -7,11 +7,15 @@ import { AuthService } from './auth.service';
 import { PasswordResetService } from './password-reset.service';
 import { MembersService, MemberDto } from '../members/members.service';
 import { Member } from '../common/member';
-import { unauthorized } from '../common/errors';
+import { tooManyRequests, unauthorized } from '../common/errors';
+import { RateLimiter } from '../common/rate-limit';
 import { stampIn } from '../common/time';
 
 @Controller('api/auth')
 export class AuthController {
+  /** Password-reset requests per address: 5 per hour. Blocking reveals nothing about which accounts exist. */
+  private readonly resetLimiter = new RateLimiter(5, 60 * 60_000);
+
   constructor(
     private readonly auth: AuthService,
     private readonly resets: PasswordResetService,
@@ -22,8 +26,8 @@ export class AuthController {
   @Public()
   @Post('login')
   @HttpCode(200)
-  async login(@Body() body: { username?: string; password?: string }) {
-    const result = await this.auth.login(body?.username ?? '', body?.password ?? '');
+  async login(@Req() req: Request, @Body() body: { username?: string; password?: string }) {
+    const result = await this.auth.login(body?.username ?? '', body?.password ?? '', req.ip ?? 'unknown');
     return {
       token: result.token,
       expiresAt: stampIn(result.expiresAt, this.config.timezone),
@@ -47,7 +51,12 @@ export class AuthController {
   @Public()
   @Post('forgot-password')
   @HttpCode(200)
-  async forgotPassword(@Body() body: { email?: string }): Promise<void> {
+  async forgotPassword(@Req() req: Request, @Body() body: { email?: string }): Promise<void> {
+    const ip = req.ip ?? 'unknown';
+    if (this.resetLimiter.retryAfterSeconds(ip)) {
+      throw tooManyRequests('Too many reset requests. Try again later.');
+    }
+    this.resetLimiter.fail(ip);
     await this.resets.request(body?.email);
   }
 
