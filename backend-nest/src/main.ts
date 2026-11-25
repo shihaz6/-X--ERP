@@ -6,6 +6,7 @@ import { Pool } from 'pg';
 import { AppModule } from './app.module';
 import { loadConfig } from './config';
 import { migrate } from './db/migrate';
+import { ApiErrorFilter } from './common/error.filter';
 
 async function bootstrap(): Promise<void> {
   const config = loadConfig();
@@ -28,6 +29,7 @@ async function bootstrap(): Promise<void> {
     allowedHeaders: ['Authorization', 'Content-Type'],
     maxAge: 3600,
   });
+  app.useGlobalFilters(new ApiErrorFilter());
   await app.listen(config.port, '0.0.0.0');
   log.log(`AlchemyX ERP API listening on port ${config.port}`);
 }
