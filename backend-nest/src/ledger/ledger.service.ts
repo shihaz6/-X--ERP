@@ -9,12 +9,12 @@ import * as V from '../common/validation';
 import { todayIn } from '../common/time';
 import { AuditService } from '../audit/audit.service';
 
-export const LEDGER_CATEGORIES: Record<'Income' | 'Expense', readonly string[]> = {
+const LEDGER_CATEGORIES: Record<'Income' | 'Expense', readonly string[]> = {
   Income: ['Client Payment', 'Subscription', 'Consulting Fee', 'Other Income'],
   Expense: ['Salaries', 'Cloud Infrastructure', 'Software', 'Rent', 'Marketing', 'Travel', 'Other'],
 };
 
-export interface LedgerDto {
+interface LedgerDto {
   id: string;
   date: string;
   desc: string;
