@@ -236,7 +236,8 @@ export class ProjectsService {
   }
 
   private async isOnTeam(q: Queryable, projectId: string, memberId: string): Promise<boolean> {
-    return (await q.query('SELECT 1 FROM project_team WHERE project_id = $1 AND member_id = $2', [projectId, memberId])).rowCount > 0;
+    const r = await q.query('SELECT 1 FROM project_team WHERE project_id = $1 AND member_id = $2', [projectId, memberId]);
+    return (r.rowCount ?? 0) > 0;
   }
 
   async find(q: Queryable, id: string, lock: boolean): Promise<{ id: string; name: string }> {
