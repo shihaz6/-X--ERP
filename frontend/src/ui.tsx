@@ -281,14 +281,14 @@ export function Stat({ label, value, delta, icon, hint }: { label: string; value
 }
 
 /* ---------- table ---------- */
-export function Table<T>({ rows, cols, onRow, empty }: { rows: T[]; cols: { h: string; r: (row: T) => ReactNode; cls?: string }[]; onRow?: (row: T) => void; empty?: ReactNode }) {
+export function Table<T>({ rows, cols, onRow, empty }: { rows: T[]; cols: { h: string; label?: ReactNode; r: (row: T) => ReactNode; cls?: string }[]; onRow?: (row: T) => void; empty?: ReactNode }) {
   if (!rows.length) return <>{empty ?? <Empty title="Nothing here yet" text="Try adjusting filters or create a new record." />}</>;
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-sm">
         <thead>
           <tr className="border-b border-line/70 text-left text-[11px] uppercase tracking-wider text-neutral-500">
-            {cols.map(c => <th key={c.h} className={`px-3 py-2.5 font-medium md:px-5 md:py-3 ${c.cls ?? ''}`}>{c.h}</th>)}
+            {cols.map(c => <th key={c.h} className={`px-3 py-2.5 font-medium md:px-5 md:py-3 ${c.cls ?? ''}`}>{c.label ?? c.h}</th>)}
           </tr>
         </thead>
         <tbody>
