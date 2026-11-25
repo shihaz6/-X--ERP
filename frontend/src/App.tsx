@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { LayoutDashboard, Users, FolderKanban, ShoppingCart, Wallet, Repeat, UsersRound, FileText, BarChart3, Settings as Cog, Search, Bell, ChevronsLeft, ChevronDown, LogOut, Lock } from 'lucide-react';
+import { LayoutDashboard, Users, FolderKanban, ShoppingCart, Wallet, Repeat, UsersRound, FileText, BarChart3, Settings as Cog, Search, Bell, ChevronsLeft, ChevronDown, LogOut, Lock, Menu } from 'lucide-react';
 import { StoreProvider, useStore, Logo, Avatar, Button, Field, Input, Spinner, Empty, money, ErrorBoundary } from './ui';
-import { api, session, ApiError } from './api';
+import { api, session, serverUrl, isNative, ApiError } from './api';
 import type { Capabilities } from './types';
 import Dashboard from './Dashboard';
 import CRM from './CRM';
@@ -31,6 +31,7 @@ const NAV: NavItem[] = [
 
 export default function App() {
   const [page, setPage] = useState('dashboard');
+  const [serverReady, setServerReady] = useState(() => !isNative || serverUrl.isSet());
   const [authed, setAuthed] = useState(() => !!session.get());
   const signOut = useCallback(() => {
     api.logout().catch(() => undefined);
@@ -39,8 +40,9 @@ export default function App() {
   }, []);
 
   const resetToken = new URLSearchParams(window.location.search).get('reset');
+  if (!serverReady) return <ServerSetup onDone={() => setServerReady(true)} />;
   if (!authed && resetToken) return <ResetPassword token={resetToken} />;
-  if (!authed) return <Login onDone={() => setAuthed(true)} />;
+  if (!authed) return <Login onDone={() => setAuthed(true)} onChangeServer={() => setServerReady(false)} />;
   return (
     <StoreProvider go={setPage} onSignedOut={signOut}>
       <Shell page={page} setPage={setPage} signOut={signOut} />
@@ -48,7 +50,32 @@ export default function App() {
   );
 }
 
-function Login({ onDone }: { onDone: () => void }) {
+function ServerSetup({ onDone }: { onDone: () => void }) {
+  const [url, setUrl] = useState(serverUrl.get());
+  const [err, setErr] = useState('');
+  const submit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const value = url.trim().replace(/\/+$/, '');
+    if (!/^https?:\/\/[^\s/]+/.test(value)) return setErr('Enter the full address, starting with https:// (or http:// on a local network)');
+    serverUrl.set(value);
+    onDone();
+  };
+  return (
+    <div className="flex min-h-full items-center justify-center p-6">
+      <form onSubmit={submit} className="fade-up w-full max-w-sm">
+        <div className="mb-8"><Logo /></div>
+        <h2 className="font-display text-2xl font-semibold">Connect to your server</h2>
+        <p className="mb-6 mt-1 text-sm text-neutral-500">Enter the address of the AlchemyX ERP server your administrator gave you.</p>
+        <div className="space-y-4">
+          <Field label="Server address" error={err}><Input type="url" inputMode="url" autoCapitalize="none" autoCorrect="off" placeholder="https://alchemyx-erp.onrender.com" value={url} onChange={e => setUrl(e.target.value)} /></Field>
+          <Button variant="primary" type="submit" className="h-10 w-full">Continue</Button>
+        </div>
+      </form>
+    </div>
+  );
+}
+
+function Login({ onDone, onChangeServer }: { onDone: () => void; onChangeServer: () => void }) {
   const [username, setUsername] = useState('');
   const [pw, setPw] = useState('');
   const [err, setErr] = useState('');
@@ -90,6 +117,7 @@ function Login({ onDone }: { onDone: () => void }) {
             <Field label="Password" error={err}><Input type="password" autoComplete="current-password" value={pw} onChange={e => setPw(e.target.value)} /></Field>
             <Button variant="primary" type="submit" className="h-10 w-full" disabled={busy}>{busy ? <><Spinner />Signing in…</> : 'Sign in'}</Button>
             <button type="button" onClick={() => setForgot(true)} className="w-full text-center text-xs text-accent hover:underline">Forgot password?</button>
+            {isNative && <button type="button" onClick={onChangeServer} className="w-full truncate text-center text-xs text-neutral-500 hover:underline">Server: {serverUrl.get()}</button>}
           </div>
         </form>
       </div>
@@ -100,6 +128,8 @@ function Login({ onDone }: { onDone: () => void }) {
 function Shell({ page, setPage, signOut }: { page: string; setPage: (p: string) => void; signOut: () => void }) {
   const s = useStore();
   const [collapsed, setCollapsed] = useState(false);
+  /** On phones the sidebar is a drawer; this says whether it is open. */
+  const [drawer, setDrawer] = useState(false);
   const [menu, setMenu] = useState<null | 'notif' | 'user'>(null);
   const [q, setQ] = useState('');
   const [loading, setLoading] = useState(false);
@@ -112,7 +142,7 @@ function Shell({ page, setPage, signOut }: { page: string; setPage: (p: string) 
   const companyName = ws.settings.company.name || 'Set up your company in Settings';
   const clientName = (id: string) => ws.clients.find(c => c.id === id)?.name ?? '—';
 
-  const navigate = (p: string) => { setLoading(true); setPage(p); setMenu(null); setQ(''); setTimeout(() => setLoading(false), 250); };
+  const navigate = (p: string) => { setLoading(true); setPage(p); setMenu(null); setQ(''); setDrawer(false); setTimeout(() => setLoading(false), 250); };
   useEffect(() => {
     const k = (e: KeyboardEvent) => { if ((e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); searchRef.current?.focus(); } };
     window.addEventListener('keydown', k); return () => window.removeEventListener('keydown', k);
@@ -135,9 +165,10 @@ function Shell({ page, setPage, signOut }: { page: string; setPage: (p: string) 
 
   return (
     <div className="flex h-full bg-ink">
-      <aside className={`flex shrink-0 flex-col border-r border-line/60 bg-base transition-all duration-300 ${collapsed ? 'w-[72px]' : 'w-[248px]'}`}>
-        <div className="flex h-16 items-center px-5"><Logo collapsed={collapsed} /></div>
-        <div className={`mx-3 mb-3 rounded-xl border border-line/60 bg-panel px-3 py-2 ${collapsed ? 'hidden' : ''}`}>
+      {drawer && <div className="fixed inset-0 z-40 bg-black/60 md:hidden" onClick={() => setDrawer(false)} />}
+      <aside className={`${drawer ? 'fixed inset-y-0 left-0 z-50 flex w-[280px] shadow-2xl' : 'hidden md:flex md:static'} shrink-0 flex-col border-r border-line/60 bg-base transition-all duration-300 ${collapsed ? 'md:w-[72px]' : 'md:w-[248px]'}`}>
+        <div className="flex h-16 items-center px-5"><Logo collapsed={collapsed && !drawer} /></div>
+        <div className={`mx-3 mb-3 rounded-xl border border-line/60 bg-panel px-3 py-2 ${collapsed && !drawer ? 'hidden' : ''}`}>
           <div className="text-[10px] uppercase tracking-wider text-neutral-500">Workspace</div>
           <div className="truncate text-sm font-medium">{companyName}</div>
         </div>
@@ -149,20 +180,21 @@ function Shell({ page, setPage, signOut }: { page: string; setPage: (p: string) 
               <button key={n.id} title={n.label} onClick={() => ok && navigate(n.id)} className={`group relative flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition ${active ? 'bg-accent-soft text-accent' : ok ? 'text-neutral-400 hover:bg-white/5 hover:text-neutral-100' : 'cursor-not-allowed text-neutral-700'}`}>
                 {active && <span className="absolute left-0 top-2 bottom-2 w-0.5 rounded-r bg-accent" />}
                 <n.icon size={18} className="shrink-0" />
-                {!collapsed && <span className="flex-1 text-left">{n.label}</span>}
-                {!collapsed && !ok && <Lock size={12} />}
+                {(!collapsed || drawer) && <span className="flex-1 text-left">{n.label}</span>}
+                {(!collapsed || drawer) && !ok && <Lock size={12} />}
               </button>
             );
           })}
         </nav>
-        <button aria-label="Collapse sidebar" onClick={() => setCollapsed(!collapsed)} className="m-3 flex items-center gap-2 rounded-lg px-3 py-2 text-xs text-neutral-500 hover:bg-white/5 hover:text-neutral-300">
+        <button aria-label="Collapse sidebar" onClick={() => setCollapsed(!collapsed)} className="m-3 hidden items-center gap-2 rounded-lg px-3 py-2 text-xs text-neutral-500 hover:bg-white/5 hover:text-neutral-300 md:flex">
           <ChevronsLeft size={16} className={`transition ${collapsed ? 'rotate-180' : ''}`} />{!collapsed && 'Collapse'}
         </button>
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="relative z-30 flex h-16 shrink-0 items-center gap-4 border-b border-line/60 bg-base/80 px-6 backdrop-blur">
-          <div className="relative w-full max-w-md">
+        <header className="relative z-30 flex h-16 shrink-0 items-center gap-2 border-b border-line/60 bg-base/80 px-3 backdrop-blur md:gap-4 md:px-6">
+          <button aria-label="Open menu" onClick={() => setDrawer(true)} className="grid h-9 w-9 shrink-0 place-items-center rounded-lg text-neutral-400 hover:bg-white/5 hover:text-neutral-100 md:hidden"><Menu size={20} /></button>
+          <div className="relative min-w-0 w-full max-w-md">
             <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500" />
             <input ref={searchRef} aria-label="Search" value={q} onChange={e => setQ(e.target.value)} placeholder="Search clients, projects, orders, invoices…" className="h-9 w-full rounded-lg border border-line bg-panel pl-9 pr-14 text-sm outline-none placeholder:text-neutral-600 focus:border-accent/60" />
             <kbd className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded border border-line px-1.5 text-[10px] text-neutral-500">Ctrl K</kbd>
@@ -199,7 +231,7 @@ function Shell({ page, setPage, signOut }: { page: string; setPage: (p: string) 
           </div>
         </header>
         <main className="flex-1 overflow-y-auto" onClick={() => menu && setMenu(null)}>
-          <div className="mx-auto max-w-[1440px] p-6 lg:p-8">
+          <div className="mx-auto max-w-[1440px] p-4 sm:p-6 lg:p-8">
             {loading ? (
               <div className="space-y-4"><div className="h-8 w-64 animate-pulse rounded-lg bg-white/5" /><div className="grid grid-cols-4 gap-4">{[0, 1, 2, 3].map(i => <div key={i} className="h-28 animate-pulse rounded-2xl bg-white/5" />)}</div><div className="h-72 animate-pulse rounded-2xl bg-white/5" /></div>
             ) : permitted ? <div key={page} className="fade-up"><ErrorBoundary><Page /></ErrorBoundary></div> : <Empty title="Access restricted" text={`Your role (${user.access}) does not have permission to view ${current.label}.`} />}
