@@ -2,7 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { AppConfig, CONFIG } from '../config.provider';
 import { Member } from '../common/member';
 import { Permissions } from '../common/permissions';
-import { addDays, mondayOf, todayIn } from '../common/time';
+import { mondayOf, todayIn } from '../common/time';
 import { MembersService } from '../members/members.service';
 import { ClientsService } from '../clients/clients.service';
 import { ProjectsService } from '../projects/projects.service';
@@ -73,5 +73,3 @@ export class WorkspaceService {
     };
   }
 }
-
-export { addDays };
