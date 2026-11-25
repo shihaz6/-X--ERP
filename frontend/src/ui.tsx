@@ -136,7 +136,7 @@ export const Card = ({ children, className = '' }: { children: ReactNode; classN
   <div className={`rounded-2xl border border-line/70 bg-panel shadow-[0_1px_0_rgba(255,255,255,0.03)_inset,0_8px_24px_-12px_rgba(0,0,0,0.5)] ${className}`}>{children}</div>
 );
 export const CardHead = ({ title, sub, right }: { title: string; sub?: string; right?: ReactNode }) => (
-  <div className="flex items-start justify-between gap-3 px-5 pt-5 pb-3">
+  <div className="flex items-start justify-between gap-3 px-4 pt-4 pb-2.5 md:px-5 md:pt-5 md:pb-3">
     <div><h3 className="text-[15px] font-semibold text-neutral-100">{title}</h3>{sub && <p className="mt-0.5 text-xs text-neutral-500">{sub}</p>}</div>
     {right}
   </div>
@@ -266,15 +266,15 @@ export const PageHeader = ({ title, sub, actions }: { title: string; sub: string
 
 export function Stat({ label, value, delta, icon, hint }: { label: string; value: string; delta?: number; icon: ReactNode; hint?: string }) {
   return (
-    <Card className="fade-up p-5">
-      <div className="flex items-center justify-between">
-        <span className="text-xs font-medium text-neutral-500">{label}</span>
-        <span className="grid h-8 w-8 place-items-center rounded-lg bg-accent-soft text-accent">{icon}</span>
+    <Card className="fade-up p-3.5 md:p-5">
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-[11px] font-medium leading-tight text-neutral-500 md:text-xs">{label}</span>
+        <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-accent-soft text-accent md:h-8 md:w-8">{icon}</span>
       </div>
-      <div className="mt-3 font-display text-[26px] font-semibold tracking-tight">{value}</div>
-      <div className="mt-1 text-xs">
+      <div className="mt-2 font-display text-lg font-semibold tracking-tight md:mt-3 md:text-[26px]">{value}</div>
+      <div className="mt-0.5 truncate text-[11px] md:mt-1 md:text-xs">
         {delta !== undefined && isFinite(delta) && <span className={delta >= 0 ? 'text-emerald-400' : 'text-red-400'}>{delta >= 0 ? '▲' : '▼'} {Math.abs(delta).toFixed(1)}%</span>}
-        <span className="ml-1.5 text-neutral-500">{hint ?? 'vs previous period'}</span>
+        <span className="ml-1.5 text-neutral-500 max-md:hidden">{hint ?? 'vs previous period'}</span>
       </div>
     </Card>
   );
