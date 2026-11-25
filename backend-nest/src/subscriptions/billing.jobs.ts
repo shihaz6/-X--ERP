@@ -1,9 +1,10 @@
-import { Inject, Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
-import { SchedulerRegistry } from '@nestjs/schedule';
-import { CronJob } from 'cron';
-import { AppConfig, CONFIG } from '../config.provider';
+import { Injectable, Logger } from '@nestjs/common';
+import { Cron } from '@nestjs/schedule';
+import { loadConfig } from '../config';
 import { SubscriptionsService } from './subscriptions.service';
 import { InvoiceDeliveryService } from '../invoices/invoice-delivery.service';
+
+const config = loadConfig();
 
 /**
  * Daily jobs that run without a signed-in user: billing at 06:00 and overdue reminders at 07:00
@@ -11,30 +12,15 @@ import { InvoiceDeliveryService } from '../invoices/invoice-delivery.service';
  * Each job is safe to repeat: a subscription's billing date only moves forward when it is billed.
  */
 @Injectable()
-export class BillingJobs implements OnModuleInit, OnModuleDestroy {
+export class BillingJobs {
   private readonly log = new Logger(BillingJobs.name);
 
   constructor(
     private readonly subscriptions: SubscriptionsService,
     private readonly delivery: InvoiceDeliveryService,
-    private readonly registry: SchedulerRegistry,
-    @Inject(CONFIG) private readonly config: AppConfig,
   ) {}
 
-  onModuleInit(): void {
-    const zone = this.config.timezone;
-    this.registry.addCronJob('billing-due-subscriptions',
-      new CronJob(this.config.billingCron, () => void this.billDue(), null, true, zone));
-    this.registry.addCronJob('overdue-reminders',
-      new CronJob(this.config.overdueCron, () => void this.overdue(), null, true, zone));
-  }
-
-  onModuleDestroy(): void {
-    for (const name of ['billing-due-subscriptions', 'overdue-reminders']) {
-      if (this.registry.doesExist('cron', name)) this.registry.deleteCronJob(name);
-    }
-  }
-
+  @Cron(config.billingCron, { name: 'billing-due-subscriptions', timeZone: config.timezone })
   async billDue(): Promise<void> {
     try {
       const drafted = await this.subscriptions.billDueAsSystem();
@@ -44,6 +30,7 @@ export class BillingJobs implements OnModuleInit, OnModuleDestroy {
     }
   }
 
+  @Cron(config.overdueCron, { name: 'overdue-reminders', timeZone: config.timezone })
   async overdue(): Promise<void> {
     try {
       await this.delivery.sendOverdueReminders();
