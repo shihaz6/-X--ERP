@@ -4,6 +4,8 @@ import { HttpException, HttpStatus } from '@nestjs/common';
 export class ApiError extends HttpException {
   constructor(status: HttpStatus, message: string) {
     super({ error: message }, status);
+    // HttpException would otherwise report a generic message, which logs and tests would show instead.
+    this.message = message;
   }
 }
 
