@@ -6,13 +6,12 @@ import { badRequest, notFound } from '../common/errors';
 import { Permissions, requireAccess } from '../common/permissions';
 import * as V from '../common/validation';
 import { AuditService } from '../audit/audit.service';
-import { MembersService } from '../members/members.service';
 
-export const PROJECT_STATUSES = ['Planning', 'Active', 'On Hold', 'Completed'] as const;
-export const PRIORITIES = ['Low', 'Medium', 'High', 'Critical'] as const;
-export const TASK_STATUSES = ['Backlog', 'In Progress', 'Review', 'Done'] as const;
+const PROJECT_STATUSES = ['Planning', 'Active', 'On Hold', 'Completed'] as const;
+const PRIORITIES = ['Low', 'Medium', 'High', 'Critical'] as const;
+const TASK_STATUSES = ['Backlog', 'In Progress', 'Review', 'Done'] as const;
 
-export interface TaskDto {
+interface TaskDto {
   id: string;
   title: string;
   status: string;
@@ -20,7 +19,7 @@ export interface TaskDto {
   due: string;
 }
 
-export interface MilestoneDto {
+interface MilestoneDto {
   id: string;
   name: string;
   due: string;
@@ -71,7 +70,6 @@ export class ProjectsService {
   constructor(
     private readonly db: Db,
     private readonly audit: AuditService,
-    private readonly members: MembersService,
   ) {}
 
   async list(viewer: Member): Promise<ProjectDto[]> {
