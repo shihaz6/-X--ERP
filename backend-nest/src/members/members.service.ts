@@ -24,7 +24,7 @@ export interface MemberDto {
   initials: string;
 }
 
-export interface WeekView {
+interface WeekView {
   hours: Map<string, number>;
   onLeave: Set<string>;
 }
