@@ -1,6 +1,6 @@
-# AlchemyX ERP API（NestJS）
+# 業務管理 API（NestJS）
 
-AlchemyX ERP の API です（NestJS / TypeScript）。PostgreSQL（本番は Neon）を使い、`/api` の仕様は Web アプリと AlchemyX Connect（スマートフォンアプリ）が使うものと同じです。
+業務管理システムの API です（NestJS / TypeScript）。PostgreSQL（本番は Neon）を使い、`/api` の仕様は Web アプリと Android アプリが使うものと同じです。
 
 英語版は [README.md](./README.md) を参照してください。
 
