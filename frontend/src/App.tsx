@@ -166,7 +166,7 @@ function Shell({ page, setPage, signOut }: { page: string; setPage: (p: string) 
   return (
     <div className="flex h-full bg-ink">
       {drawer && <div className="fixed inset-0 z-40 bg-black/60 md:hidden" onClick={() => setDrawer(false)} />}
-      <aside className={`${drawer ? 'fixed inset-y-0 left-0 z-50 flex w-[280px] shadow-2xl' : 'hidden md:flex md:static'} shrink-0 flex-col border-r border-line/60 bg-base transition-all duration-300 ${collapsed ? 'md:w-[72px]' : 'md:w-[248px]'}`}>
+      <aside className={`${drawer ? 'fixed bottom-0 left-0 top-[env(safe-area-inset-top)] z-50 flex w-[280px] shadow-2xl' : 'hidden md:flex md:static'} shrink-0 flex-col border-r border-line/60 bg-base transition-all duration-300 ${collapsed ? 'md:w-[72px]' : 'md:w-[248px]'}`}>
         <div className="flex h-16 items-center px-5"><Logo collapsed={collapsed && !drawer} /></div>
         <div className={`mx-3 mb-3 rounded-xl border border-line/60 bg-panel px-3 py-2 ${collapsed && !drawer ? 'hidden' : ''}`}>
           <div className="text-[10px] uppercase tracking-wider text-neutral-500">Workspace</div>
