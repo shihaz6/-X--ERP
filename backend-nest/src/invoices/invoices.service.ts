@@ -39,7 +39,7 @@ export function effectiveStatus(status: string, dueOn: string, today: string): s
   return status === 'Sent' && dueOn < today ? 'Overdue' : status;
 }
 
-export function toDto(i: InvoiceRow, today: string): InvoiceDto {
+function toDto(i: InvoiceRow, today: string): InvoiceDto {
   return {
     id: i.id,
     clientId: i.client_id,
