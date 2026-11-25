@@ -102,10 +102,13 @@ export class TeamService {
     });
   }
 
-  async submissions(weekStartIso: string): Promise<TimesheetSubmissionDto[]> {
+  /** Managers see everyone's submission status; other members see only their own. */
+  async submissions(viewer: Member, weekStartIso: string): Promise<TimesheetSubmissionDto[]> {
+    requireAccess(Permissions.team(viewer.role), 'Your role cannot view timesheet approvals.');
     const monday = mondayOf(V.date(weekStartIso, 'Week start'));
     const rows = await this.db.q.query<{ member_id: string; week_start: string; status: string }>(
-      'SELECT member_id, week_start, status FROM timesheet_submissions WHERE week_start = $1', [monday]);
+      'SELECT member_id, week_start, status FROM timesheet_submissions WHERE week_start = $1 AND ($2::boolean OR member_id = $3)',
+      [monday, Permissions.manager(viewer.role), viewer.id]);
     return rows.rows.map(r => ({ memberId: r.member_id, weekStart: r.week_start, status: r.status }));
   }
 
@@ -127,9 +130,12 @@ export class TeamService {
     });
   }
 
-  async leaves(): Promise<LeaveDto[]> {
+  /** Managers see every leave request; other members see only their own. */
+  async leaves(viewer: Member): Promise<LeaveDto[]> {
+    requireAccess(Permissions.team(viewer.role), 'Your role cannot view leave requests.');
     const rows = await this.db.q.query<{ id: string; member_id: string; from_date: string; to_date: string; leave_type: string; status: string }>(
-      'SELECT id, member_id, from_date, to_date, leave_type, status FROM leave_requests ORDER BY from_date DESC');
+      'SELECT id, member_id, from_date, to_date, leave_type, status FROM leave_requests WHERE ($1::boolean OR member_id = $2) ORDER BY from_date DESC',
+      [Permissions.manager(viewer.role), viewer.id]);
     return rows.rows.map(l => ({
       id: l.id, memberId: l.member_id, from: l.from_date, to: l.to_date, type: l.leave_type, status: l.status,
     }));
