@@ -17,6 +17,7 @@ import { DocumentsModule } from './documents/documents.module';
 import { SettingsModule } from './settings/settings.module';
 import { AnalyticsModule } from './analytics/analytics.module';
 import { WorkspaceModule } from './workspace/workspace.module';
+import { JobsModule } from './jobs/jobs.module';
 
 @Controller('api/health')
 class HealthController {
@@ -46,6 +47,7 @@ class HealthController {
     SettingsModule,
     AnalyticsModule,
     WorkspaceModule,
+    JobsModule,
   ],
   controllers: [HealthController],
 })
