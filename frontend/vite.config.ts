@@ -69,11 +69,8 @@ function contentSecurityPolicy(env: Record<string, string>): Plugin {
   return {
     name: 'content-security-policy',
     apply: 'build',
-    transformIndexHtml() {
-      return {
-        html: undefined,
-        tags: [{ tag: 'meta', attrs: { 'http-equiv': 'Content-Security-Policy', content: policy }, injectTo: 'head-prepend' }],
-      }
+    transformIndexHtml(): HtmlTagDescriptor[] {
+      return [{ tag: 'meta', attrs: { 'http-equiv': 'Content-Security-Policy', content: policy }, injectTo: 'head-prepend' }]
     },
   }
 }
