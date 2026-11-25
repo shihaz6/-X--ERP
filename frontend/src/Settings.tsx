@@ -11,6 +11,8 @@ const FISCAL = ['July', 'January', 'April'];
 const TEMPLATES = ['Modern', 'Classic', 'Minimal'];
 const TERMS = ['Net 30', 'Net 15', 'Net 45', 'Due on receipt'];
 // Role-to-module matrix describing what the application enforces.
+/** Short role names for the narrow phone layout of the permission matrix. */
+const ROLE_SHORT: Record<string, string> = { 'Super Admin': 'SA', 'Finance Manager': 'FIN', 'Project Manager': 'PM', Developer: 'DEV' };
 const PERMS: [string, boolean[]][] = [
   ['Dashboard', [true, true, true, true]],
   ['CRM & clients', [true, false, true, false]],
@@ -83,15 +85,15 @@ function AccountsSection() {
   const [adding, setAdding] = useState(false);
   return (
     <div className="space-y-4">
-      <Card><CardHead title="Employee accounts" sub="Each member signs in with their own email and password" right={<Button size="sm" variant="primary" onClick={() => setAdding(true)}><Plus size={13} />Add member</Button>} />
+      <Card><CardHead title="Employee accounts" sub="Each member signs in with their own email and password" right={<Button size="sm" variant="primary" className="whitespace-nowrap" onClick={() => setAdding(true)}><Plus size={13} />Add member</Button>} />
         <Table rows={ws.members} cols={[
           { h: 'User', r: m => <div className="flex items-center gap-2"><Avatar m={m} size={26} /><div><div>{m.name}</div><div className="text-xs text-neutral-500">{m.email}</div></div></div> },
-          { h: 'Access role', r: m => <Select value={m.access} disabled={m.id === ws.me.id} onChange={e => s.act(() => api.members.update(m.id, { access: e.target.value }), `${m.name} is now ${e.target.value}`)} options={ROLES} className="h-8 w-40 text-xs" /> },
-          { h: 'Status', r: m => <Badge tone={m.status === 'On Leave' ? 'amber' : 'green'}>{m.status}</Badge> },
+          { h: 'Access role', r: m => <Select value={m.access} disabled={m.id === ws.me.id} onChange={e => s.act(() => api.members.update(m.id, { access: e.target.value }), `${m.name} is now ${e.target.value}`)} options={ROLES} className="h-8 w-32 text-xs md:w-40" /> },
+          { h: 'Status', cls: 'max-md:hidden', r: m => <Badge tone={m.status === 'On Leave' ? 'amber' : 'green'}>{m.status}</Badge> },
         ]} />
       </Card>
       <Card><CardHead title="Role-based access control" sub="Module access per role, as enforced by the server" />
-        <Table rows={PERMS} cols={[{ h: 'Module', r: p => p[0] }, ...ROLES.map((r, i) => ({ h: r, cls: 'text-center', r: (p: [string, boolean[]]) => (p[1][i] ? <span className="text-accent">●</span> : <span className="text-neutral-700">—</span>) }))]} /></Card>
+        <Table rows={PERMS} cols={[{ h: 'Module', r: p => p[0] }, ...ROLES.map((r, i) => ({ h: r, label: <><span className="md:hidden">{ROLE_SHORT[r] ?? r}</span><span className="max-md:hidden">{r}</span></>, cls: 'text-center', r: (p: [string, boolean[]]) => (p[1][i] ? <span className="text-accent">●</span> : <span className="text-neutral-700">—</span>) }))]} /></Card>
       <AddMemberModal open={adding} onClose={() => setAdding(false)} />
     </div>
   );
