@@ -3,7 +3,7 @@ import * as nodemailer from 'nodemailer';
 import type { Transporter } from 'nodemailer';
 import { AppConfig, CONFIG } from '../config.provider';
 
-export interface Attachment {
+interface Attachment {
   name: string;
   content: Buffer;
 }
