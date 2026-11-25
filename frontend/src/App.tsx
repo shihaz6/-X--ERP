@@ -194,7 +194,7 @@ function Shell({ page, setPage, signOut }: { page: string; setPage: (p: string) 
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="relative z-30 flex h-16 shrink-0 items-center gap-2 border-b border-line/60 bg-base/80 px-3 backdrop-blur md:gap-4 md:px-6">
           <button aria-label="Open menu" onClick={() => setDrawer(true)} className="grid h-9 w-9 shrink-0 place-items-center rounded-lg text-neutral-400 hover:bg-white/5 hover:text-neutral-100 md:hidden"><Menu size={20} /></button>
-          <div className="relative min-w-0 w-full max-w-md">
+          <div className="relative hidden min-w-0 w-full max-w-md md:block">
             <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500" />
             <input ref={searchRef} aria-label="Search" value={q} onChange={e => setQ(e.target.value)} placeholder="Search clients, projects, orders, invoices…" className="h-9 w-full rounded-lg border border-line bg-panel pl-9 pr-14 text-sm outline-none placeholder:text-neutral-600 focus:border-accent/60" />
             <kbd className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded border border-line px-1.5 text-[10px] text-neutral-500">Ctrl K</kbd>
