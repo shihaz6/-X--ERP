@@ -13,6 +13,8 @@ export interface AppConfig {
   billingCron: string;
   overdueCron: string;
   runMigrations: boolean;
+  /** Shared secret for the scheduled-job endpoints (Vercel Cron). Unset means the endpoints refuse all calls. */
+  cronSecret: string;
   bootstrapAdmin: { username: string; email: string; password: string; name: string };
 }
 
@@ -51,6 +53,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     billingCron: env.BILLING_CRON ?? '0 0 6 * * *',
     overdueCron: env.OVERDUE_CRON ?? '0 0 7 * * *',
     runMigrations: (env.RUN_MIGRATIONS ?? 'true') !== 'false',
+    cronSecret: env.CRON_SECRET ?? '',
     bootstrapAdmin: {
       username: env.BOOTSTRAP_ADMIN_USERNAME ?? '',
       email: env.BOOTSTRAP_ADMIN_EMAIL ?? '',
