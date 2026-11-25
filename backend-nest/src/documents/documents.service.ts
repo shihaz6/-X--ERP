@@ -9,8 +9,8 @@ import { todayIn, stampIn } from '../common/time';
 import { humanSize } from '../common/format';
 import { AuditService } from '../audit/audit.service';
 
-export const DOCUMENT_CATEGORIES = ['Proposal', 'Agreement', 'Invoice', 'Specification', 'NDA'] as const;
-export const DOCUMENT_STATUSES = ['Draft', 'In Review', 'Signed', 'Archived'] as const;
+const DOCUMENT_CATEGORIES = ['Proposal', 'Agreement', 'Invoice', 'Specification', 'NDA'] as const;
+const DOCUMENT_STATUSES = ['Draft', 'In Review', 'Signed', 'Archived'] as const;
 
 export interface UploadedFile {
   originalname?: string;
@@ -19,7 +19,7 @@ export interface UploadedFile {
   buffer: Buffer;
 }
 
-export interface DocumentVersionDto {
+interface DocumentVersionDto {
   version: number;
   fileName: string;
   sizeBytes: number;
