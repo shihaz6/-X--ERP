@@ -1,0 +1,9 @@
+{
+  "name": "alchemyx-erp",
+  "private": true,
+  "description": "Runs the AlchemyX ERP API (backend-nest) and web app (frontend) together",
+  "scripts": {
+    "start": "node scripts/start-all.mjs",
+    "dev": "node scripts/start-all.mjs"
+  }
+}
