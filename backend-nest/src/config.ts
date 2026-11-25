@@ -16,7 +16,9 @@ export interface AppConfig {
   bootstrapAdmin: { username: string; email: string; password: string; name: string };
 }
 
-const DEFAULT_CORS = ['http://localhost:5173', 'https://localhost', 'capacitor://localhost'];
+// Origins of the phone app. Always allowed; local web origins are only allowed outside production.
+const NATIVE_ORIGINS = ['https://localhost', 'capacitor://localhost'];
+const LOCAL_WEB_ORIGINS = ['http://localhost:5173', 'http://localhost:8443'];
 
 /** Accepts "12h", "30m", "45s" or "7d". Falls back to 12 hours for anything else. */
 export function parseDurationMs(value: string | undefined, fallbackMs = 12 * 60 * 60 * 1000): number {
@@ -33,7 +35,8 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     databaseUrl,
     dbPoolSize: Number(env.DB_POOL_SIZE ?? 5),
     timezone: env.APP_TIMEZONE ?? 'Asia/Colombo',
-    corsAllowedOrigins: (env.CORS_ALLOWED_ORIGINS ?? DEFAULT_CORS.join(','))
+    corsAllowedOrigins: (env.CORS_ALLOWED_ORIGINS
+      ?? [...(env.NODE_ENV === 'production' ? [] : LOCAL_WEB_ORIGINS), ...NATIVE_ORIGINS].join(','))
       .split(',').map(s => s.trim()).filter(Boolean),
     sessionTtlMs: parseDurationMs(env.SESSION_TTL),
     maxUploadBytes: 25 * 1024 * 1024,
