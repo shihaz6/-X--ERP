@@ -1,6 +1,12 @@
 {
   "title": "AlchemyX ERP",
   "description": "Manage AI and software projects, clients, orders, finances, and teams with an integrated ERP system designed for tech startups and business automation.",
+  "icons": {
+    "icon": "/logo.png"
+  },
+  "openGraph": {
+    "image": "/logo.png"
+  },
   "robots": {
     "index": false
   },
