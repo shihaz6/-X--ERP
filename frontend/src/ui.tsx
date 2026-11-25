@@ -288,13 +288,13 @@ export function Table<T>({ rows, cols, onRow, empty }: { rows: T[]; cols: { h: s
       <table className="w-full text-sm">
         <thead>
           <tr className="border-b border-line/70 text-left text-[11px] uppercase tracking-wider text-neutral-500">
-            {cols.map(c => <th key={c.h} className={`px-5 py-3 font-medium ${c.cls ?? ''}`}>{c.h}</th>)}
+            {cols.map(c => <th key={c.h} className={`px-3 py-2.5 font-medium md:px-5 md:py-3 ${c.cls ?? ''}`}>{c.h}</th>)}
           </tr>
         </thead>
         <tbody>
           {rows.map((row, i) => (
             <tr key={i} onClick={() => onRow?.(row)} className={`border-b border-line/40 last:border-0 transition ${onRow ? 'cursor-pointer hover:bg-white/[0.025]' : ''}`}>
-              {cols.map(c => <td key={c.h} className={`px-5 py-3 text-neutral-300 ${c.cls ?? ''}`}>{c.r(row)}</td>)}
+              {cols.map(c => <td key={c.h} className={`px-3 py-2.5 text-neutral-300 md:px-5 md:py-3 ${c.cls ?? ''}`}>{c.r(row)}</td>)}
             </tr>
           ))}
         </tbody>
