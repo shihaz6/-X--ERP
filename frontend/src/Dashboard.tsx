@@ -76,7 +76,7 @@ export default function Dashboard() {
             <Stat label="Expenses" value={money(exp, true)} delta={pct(exp, prevExp)} icon={<TrendingDown size={16} />} hint={previous ? undefined : 'no earlier period'} />
             <Stat label="Net profit" value={money(rev - exp, true)} delta={previous ? pct(rev - exp, (prevRev ?? 0) - (prevExp ?? 0)) : NaN} icon={<PiggyBank size={16} />} hint={previous ? undefined : 'no earlier period'} />
             <Stat label="Outstanding receivables" value={money(fin?.outstanding ?? 0, true)} icon={<Receipt size={16} />} hint={`${ws.invoices.filter(i => i.status === 'Overdue').length} overdue`} />
-            <Stat label="Active projects" value={String(active.length)} icon={<FolderKanban size={16} />} hint={`${ws.projects.length} total`} />
+            <div className="col-span-2 xl:col-span-1"><Stat label="Active projects" value={String(active.length)} icon={<FolderKanban size={16} />} hint={`${ws.projects.length} total`} /></div>
           </div>
         )
       )}
