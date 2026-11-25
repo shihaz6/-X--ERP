@@ -22,6 +22,8 @@ export class BillingJobs {
 
   @Cron(config.billingCron, { name: 'billing-due-subscriptions', timeZone: config.timezone })
   async billDue(): Promise<void> {
+    // On Vercel the schedule comes from vercel.json (Cron calls /api/jobs/billing), so skip the in-process timer.
+    if (process.env.VERCEL) return;
     try {
       const drafted = await this.subscriptions.billDueAsSystem();
       if (drafted > 0) this.log.log(`Daily billing drafted ${drafted} invoice(s)`);
@@ -32,6 +34,7 @@ export class BillingJobs {
 
   @Cron(config.overdueCron, { name: 'overdue-reminders', timeZone: config.timezone })
   async overdue(): Promise<void> {
+    if (process.env.VERCEL) return;
     try {
       await this.delivery.sendOverdueReminders();
     } catch (err) {
