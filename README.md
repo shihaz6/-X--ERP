@@ -1,25 +1,26 @@
 # AlchemyX ERP
 
-Order intake, clients, projects, invoices, subscriptions, timesheets and reporting for AlchemyX Global.
+AlchemyX Global の受注管理、顧客、プロジェクト、請求書、定期契約、タイムシート、レポートを扱う ERP です。
 
-- `backend/` — Spring Boot 3.5 / Java 21, PostgreSQL via Flyway migrations, `$PORT` aware.
-- `frontend/` — React 19 + Vite + Tailwind, built to static files.
+- `backend/` — Spring Boot 3.5 / Java 21。PostgreSQL（Flyway マイグレーション）を使用し、`$PORT` に対応。
+- `backend-nest/` — 同じ API を NestJS（TypeScript）で作り直したバックエンド。詳細は [backend-nest/README.ja.md](./backend-nest/README.ja.md) を参照。
+- `frontend/` — React 19 + Vite + Tailwind。静的ファイルとしてビルド。
 
-## Hosting for free (recommended: one container)
+## 無料でホストする（推奨：コンテナ 1 つ）
 
-The frontend is a static SPA, so it is baked into the Spring Boot jar at `src/main/resources/static`.
-That gives you **one URL, one service, no CORS**:
+フロントエンドは静的な SPA なので、Spring Boot の jar（`src/main/resources/static`）に組み込まれます。
+これにより、**URL は 1 つ、サービスも 1 つ、CORS の設定も不要**になります。
 
 ```
-Render free web service (Docker)  ──serves──▶  /          React app
+Render 無料 Web サービス（Docker） ──提供──▶  /          React アプリ
         │                                      /api/**     Spring Boot
-        └──▶ Neon free Postgres (external)
+        └──▶ Neon 無料 PostgreSQL（外部）
 ```
 
-### 1. Create the database (Neon)
+### 1. データベースを作成（Neon）
 
-1. Sign up at [neon.com](https://neon.com) and create a project.
-2. Copy the **pooled** connection string. Convert it to JDBC form:
+1. [neon.com](https://neon.com) でサインアップし、プロジェクトを作成します。
+2. **プール接続**の接続文字列をコピーし、JDBC 形式に変換します。
 
    ```
    postgresql://user:pass@ep-xxx-pooler.region.aws.neon.tech/neondb?sslmode=require
@@ -27,22 +28,17 @@ Render free web service (Docker)  ──serves──▶  /          React app
    DB_URL = jdbc:postgresql://ep-xxx-pooler.region.aws.neon.tech/neondb?sslmode=require
    ```
 
-Flyway creates the schema on first boot, so an empty database is fine.
+初回起動時に Flyway がスキーマを作成するため、データベースは空でかまいません。
 
-### 2. Deploy the service (Render)
+### 2. サービスをデプロイ（Render）
 
-1. Push this repo to GitHub.
-2. In Render: **New → Blueprint**, pick the repo. `render.yaml` is detected automatically and
-   creates a free Docker web service from the root `Dockerfile`.
-3. Fill the values marked `sync: false`. `FRONTEND_URL` and `CORS_ALLOWED_ORIGINS` are not known
-   until the service exists — leave them blank, then set them to the service URL
-   (`https://alchemyx-erp.onrender.com`) and redeploy. `FRONTEND_URL` is what password-reset
-   emails link to.
-4. Open the app and sign in with the `BOOTSTRAP_ADMIN_*` account.
-5. **Delete `BOOTSTRAP_ADMIN_PASSWORD`** from the Render dashboard and redeploy. It is only used
-   to create the first Super Admin when the database has no members.
+1. このリポジトリを GitHub に push します。
+2. Render で **New → Blueprint** を選び、リポジトリを指定します。`render.yaml` が自動で検出され、ルートの `Dockerfile` から無料の Docker Web サービスが作成されます。
+3. `sync: false` と書かれた値を入力します。`FRONTEND_URL` と `CORS_ALLOWED_ORIGINS` はサービス作成後にしか分からないため、最初は空欄のままにします。サービスが作成されたら、サービスの URL（`https://alchemyx-erp.onrender.com`）を設定して再デプロイしてください。`FRONTEND_URL` はパスワード再設定メールのリンクに使われます。
+4. アプリを開き、`BOOTSTRAP_ADMIN_*` のアカウントでサインインします。
+5. Render のダッシュボードで **`BOOTSTRAP_ADMIN_PASSWORD` を削除**し、再デプロイします。この値は、データベースにメンバーがいないときに最初のスーパー管理者を作成するためだけに使われます。
 
-Build the image locally the same way Render does:
+ローカルで Render と同じ方法でイメージをビルドする場合：
 
 ```bash
 docker build -t alchemyx-erp .
@@ -52,35 +48,33 @@ docker run --rm -p 8080:8080 \
   alchemyx-erp
 ```
 
-### What the free tier actually gives you
+### 無料枠の制限
 
-| | Free limit | Consequence |
+| | 無料枠の上限 | 影響 |
 |---|---|---|
-| Render web service | 512 MB RAM, 0.1 CPU, sleeps after 15 min idle | ~60 s cold start on the first request |
-| Neon Postgres | 0.5 GB storage, autosuspends after 5 min | first query after idle is slow |
-| Outbound email | Render blocks SMTP ports 25/465/587 | leave `MAIL_HOST` empty (emails are logged), or use an HTTP email API |
+| Render Web サービス | RAM 512 MB、CPU 0.1、15 分間アクセスがないとスリープ | 最初のリクエストに約 60 秒かかる |
+| Neon PostgreSQL | ストレージ 0.5 GB、5 分間アイドルで自動停止 | アイドル後の最初のクエリが遅い |
+| 送信メール | Render は SMTP ポート 25/465/587 をブロック | `MAIL_HOST` を空にする（メールはログに出力される）か、HTTP のメール API を使う |
 
-This is fine for a demo or a handful of users. It is not a production plan: 0.1 CPU will feel slow,
-and a free tier can be reclaimed. Before storing real business data, back the database up
-periodically (`pg_dump`) and move to a paid instance — the same image deploys unchanged.
+デモや少人数での利用には十分ですが、本番向けの構成ではありません。CPU 0.1 では動作が遅く感じられ、無料枠は取り上げられることもあります。実際の業務データを保存する前に、定期的にデータベースをバックアップ（`pg_dump`）し、有料プランに移行してください。同じイメージがそのままデプロイできます。
 
-### Environment variables
+### 環境変数
 
-| Variable | Required | Purpose |
+| 変数 | 必須 | 用途 |
 |---|---|---|
-| `DB_URL`, `DB_USERNAME`, `DB_PASSWORD` | yes | Neon Postgres (`jdbc:postgresql://…?sslmode=require`) |
-| `DB_POOL_SIZE` | no | Hikari pool size, default `5`; use `3` on free plans |
-| `FRONTEND_URL` | yes | Base URL used in password-reset links |
-| `CORS_ALLOWED_ORIGINS` | no | Only needed if the frontend is on a different origin |
-| `BOOTSTRAP_ADMIN_*` | first boot | Creates the first Super Admin |
-| `APP_TIMEZONE` | no | Scheduler timezone, default `Asia/Colombo` |
-| `MAIL_*`, `MAIL_FROM` | no | SMTP delivery; empty `MAIL_HOST` logs instead of sending |
-| `JAVA_TOOL_OPTIONS` | no | `-XX:MaxRAMPercentage=60 -XX:+UseSerialGC` avoids OOM kills at 512 MB |
-| `PORT` | set by host | Server port, default `8080` |
+| `DB_URL`, `DB_USERNAME`, `DB_PASSWORD` | はい | Neon PostgreSQL（`jdbc:postgresql://…?sslmode=require`） |
+| `DB_POOL_SIZE` | いいえ | Hikari のプールサイズ。既定は `5`。無料プランでは `3` を推奨 |
+| `FRONTEND_URL` | はい | パスワード再設定リンクで使う基準 URL |
+| `CORS_ALLOWED_ORIGINS` | いいえ | フロントエンドが別オリジンにある場合のみ必要 |
+| `BOOTSTRAP_ADMIN_*` | 初回起動時 | 最初のスーパー管理者を作成 |
+| `APP_TIMEZONE` | いいえ | スケジューラのタイムゾーン。既定は `Asia/Colombo` |
+| `MAIL_*`, `MAIL_FROM` | いいえ | SMTP での送信。`MAIL_HOST` を空にするとログ出力になる |
+| `JAVA_TOOL_OPTIONS` | いいえ | `-XX:MaxRAMPercentage=60 -XX:+UseSerialGC` で 512 MB 環境での OOM 強制終了を防ぐ |
+| `PORT` | ホストが設定 | サーバーのポート。既定は `8080` |
 
-## Local development
+## ローカル開発
 
-Backend (needs Java 21, Maven, and a Postgres):
+バックエンド（Java 21、Maven、PostgreSQL が必要）：
 
 ```bash
 cd backend
@@ -90,27 +84,33 @@ export DB_PASSWORD=postgres
 mvn spring-boot:run          # http://localhost:8080
 ```
 
-On PowerShell use `$env:DB_URL='...'` instead of `export`.
+PowerShell では `export` の代わりに `$env:DB_URL='...'` を使います。
 
-Frontend (needs Node 22 + pnpm 10.34.3):
+フロントエンド（Node 22 + pnpm 10.34.3 が必要）：
 
 ```bash
 cd frontend
 pnpm install
-pnpm dev                     # http://localhost:8443, talks to localhost:8080
+pnpm dev                     # http://localhost:8443。localhost:8080 の API を使用
 ```
 
-Set `VITE_API_URL` in `frontend/.env.local` to point the dev app at another API host.
-An empty value means "same origin".
+開発中のアプリを別の API ホストに向けるには、`frontend/.env.local` の `VITE_API_URL` を設定します。空の値は「同じオリジン」を意味します。
 
-## Alternative: split hosting
+## NestJS バックエンド（backend-nest）
 
-The per-app Dockerfiles (`backend/Dockerfile`, `frontend/Dockerfile` + `nginx.conf`) still work if
-you prefer a static host for the UI (e.g. Cloudflare Pages) and a separate API service. In that case
-build the frontend with `VITE_API_URL=https://<api-host>` and set
-`CORS_ALLOWED_ORIGINS=https://<ui-host>` on the backend.
+`backend-nest/` には、同じ API を NestJS で作り直したバックエンドがあります。同じ PostgreSQL スキーマを使い、Web アプリと AlchemyX Connect（スマートフォンアプリ）はそのまま動作します。起動方法、テスト、環境変数の詳細は [backend-nest/README.ja.md](./backend-nest/README.ja.md) を参照してください。
+
+```bash
+cd backend-nest
+npm install
+npm run build
+npm start                    # .env を読み込み、既定ポートは 8080
+```
+
+## 別ホストで運用する場合
+
+ホスト別の Dockerfile（`backend/Dockerfile`、`frontend/Dockerfile` と `nginx.conf`）は、UI を静的ホスティング（例：Cloudflare Pages）に置き、API を別のサービスとして動かす場合にも使えます。その場合は、フロントエンドを `VITE_API_URL=https://<api-host>` でビルドし、バックエンドに `CORS_ALLOWED_ORIGINS=https://<ui-host>` を設定してください。
 
 ## CI
 
-`.github/workflows/ci.yml` runs backend tests, frontend type-check + build, and builds the combined
-Docker image on every push to `main`.
+`.github/workflows/ci.yml` は、`main` への push のたびに、バックエンドのテスト、フロントエンドの型チェックとビルドを実行し、統合 Docker イメージをビルドします。
