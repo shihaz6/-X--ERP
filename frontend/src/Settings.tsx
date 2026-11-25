@@ -88,7 +88,7 @@ function AccountsSection() {
       <Card><CardHead title="Employee accounts" sub="Each member signs in with their own email and password" right={<Button size="sm" variant="primary" className="whitespace-nowrap" onClick={() => setAdding(true)}><Plus size={13} />Add member</Button>} />
         <Table rows={ws.members} cols={[
           { h: 'User', r: m => <div className="flex items-center gap-2"><Avatar m={m} size={26} /><div><div>{m.name}</div><div className="text-xs text-neutral-500">{m.email}</div></div></div> },
-          { h: 'Access role', r: m => <Select value={m.access} disabled={m.id === ws.me.id} onChange={e => s.act(() => api.members.update(m.id, { access: e.target.value }), `${m.name} is now ${e.target.value}`)} options={ROLES} className="h-8 w-32 text-xs md:w-40" /> },
+          { h: 'Access role', r: m => <Select value={m.access} disabled={m.id === ws.me.id} onChange={e => s.act(() => api.members.update(m.id, { access: e.target.value }), `${m.name} is now ${e.target.value}`)} options={ROLES} className="h-8 w-36 text-xs md:w-40" /> },
           { h: 'Status', cls: 'max-md:hidden', r: m => <Badge tone={m.status === 'On Leave' ? 'amber' : 'green'}>{m.status}</Badge> },
         ]} />
       </Card>
