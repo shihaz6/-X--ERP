@@ -11,7 +11,7 @@ import { FULL_MONTHS } from '../common/format';
 import { AuditService } from '../audit/audit.service';
 import { InvoicesService, INVOICE_TERM_DAYS } from '../invoices/invoices.service';
 
-export const SUBSCRIPTION_STATUSES = ['Active', 'Paused', 'Cancelled'] as const;
+const SUBSCRIPTION_STATUSES = ['Active', 'Paused', 'Cancelled'] as const;
 
 export interface SubscriptionDto {
   id: string;
