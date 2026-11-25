@@ -1,7 +1,7 @@
 import { ArgumentsHost, Catch, ExceptionFilter, HttpException, HttpStatus, Logger } from '@nestjs/common';
 import type { Response } from 'express';
 
-export const CONFLICT_MESSAGE = 'The change conflicts with existing data.';
+const CONFLICT_MESSAGE = 'The change conflicts with existing data.';
 
 /**
  * Maps a thrown error to an HTTP status and body. Database integrity violations (SQLSTATE class 23:
