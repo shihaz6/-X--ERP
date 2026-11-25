@@ -37,7 +37,8 @@ server:
 
 app:
   timezone: ${APP_TIMEZONE:Asia/Colombo}
-  cors-allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173}
+  # https://localhost and capacitor://localhost are the origins the AlchemyX Connect native shell sends.
+  cors-allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173,https://localhost,capacitor://localhost}
   session-ttl: ${SESSION_TTL:12h}
   max-upload-bytes: 26214400
   mail-from: ${MAIL_FROM:AlchemyX <no-reply@alchemyx.local>}
