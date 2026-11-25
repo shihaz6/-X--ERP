@@ -66,7 +66,7 @@ export class WorkspaceService {
       invoices: finance ? await this.invoices.list(me) : [],
       transactions: finance ? await this.ledger.recent(me, 50) : [],
       documents: await this.documents.list(),
-      leaves: teamView ? await this.team.leaves() : [],
+      leaves: teamView ? await this.team.leaves(me) : [],
       timesheet: teamView ? await this.team.timesheet(me, monday) : [],
       audit: Permissions.admin(r) ? await this.audit.recent(25) : [],
       settings: await this.settings.get(),
