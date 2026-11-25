@@ -5,6 +5,7 @@ import { Db, Queryable } from '../db/db.service';
 import { Member } from '../common/member';
 import { notFound, tooLarge, badRequest } from '../common/errors';
 import * as V from '../common/validation';
+import { Permissions, requireAccess } from '../common/permissions';
 import { todayIn, stampIn } from '../common/time';
 import { humanSize } from '../common/format';
 import { AuditService } from '../audit/audit.service';
@@ -113,6 +114,7 @@ export class DocumentsService {
   async upload(actor: Member, file: UploadedFile | undefined, body: {
     name?: string; category?: string; clientId?: string; projectId?: string;
   }): Promise<void> {
+    requireAccess(Permissions.crm(actor.role), 'Your role cannot upload documents.');
     const content = this.readValidated(file);
     const fileName = file!.originalname?.trim() ? file!.originalname : 'document';
     const docName = V.optional(body.name) ?? fileName;
@@ -135,6 +137,7 @@ export class DocumentsService {
   }
 
   async uploadVersion(actor: Member, documentId: string, file: UploadedFile | undefined): Promise<void> {
+    requireAccess(Permissions.crm(actor.role), 'Your role cannot upload document versions.');
     const content = this.readValidated(file);
     const fileName = file!.originalname?.trim() ? file!.originalname : 'document';
     await this.db.tx(async tx => {
@@ -148,6 +151,7 @@ export class DocumentsService {
   }
 
   async setStatus(actor: Member, id: string, status: string | undefined): Promise<void> {
+    requireAccess(Permissions.crm(actor.role), 'Your role cannot change document status.');
     await this.db.tx(async tx => {
       const doc = await this.find(tx, id, true);
       const next = V.oneOf(status, 'Status', DOCUMENT_STATUSES);
