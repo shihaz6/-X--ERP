@@ -116,11 +116,7 @@ export function StoreProvider({ children, go, onSignedOut }: { children: ReactNo
 export function Logo({ collapsed = false, size = 32 }: { collapsed?: boolean; size?: number }) {
   return (
     <div className="flex items-center gap-2.5">
-      <svg width={size} height={size} viewBox="0 0 40 40" fill="none" aria-label="AlchemyX">
-        <rect width="40" height="40" rx="10" fill="#FF6A2D" />
-        <path d="M11 29 19.2 10h1.6L29 29h-4.2l-1.8-4.3h-6l-1.8 4.3H11Zm7.4-7.7h3.2L20 17.3l-1.6 4Z" fill="#1c1c1c" />
-        <path d="m26 11 3 3m0-3-3 3" stroke="#1c1c1c" strokeWidth="1.8" strokeLinecap="round" />
-      </svg>
+      <img src="/logo.png" width={size} height={size} alt="AlchemyX" className="shrink-0 rounded-[25%]" />
       {!collapsed && (
         <div className="leading-tight">
           <div className="font-display text-[17px] font-bold tracking-tight">Alchemy<span className="text-accent">X</span></div>
