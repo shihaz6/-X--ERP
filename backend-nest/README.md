@@ -1,9 +1,9 @@
-# AlchemyX ERP API (NestJS)
+# Business Management API (NestJS)
 
 日本語版は [README.ja.md](./README.ja.md) を参照してください。
 
-NestJS (TypeScript) API for the AlchemyX ERP. It talks to the same PostgreSQL
-schema (Neon in production) and serves the same `/api` contract, so the web app and the AlchemyX Connect
+NestJS (TypeScript) API for the business management system. It talks to PostgreSQL
+schema (Neon in production) and serves the same `/api` contract, so the web app and the Android app
 phone app work against it unchanged.
 
 ## Run it
