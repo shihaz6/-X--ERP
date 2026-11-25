@@ -37,7 +37,7 @@ export function parseIso(value: string): [number, number, number] | null {
   return [y, mo, d];
 }
 
-export const fmtIso = (y: number, m: number, d: number) => `${pad(y, 4)}-${pad(m)}-${pad(d)}`;
+const fmtIso = (y: number, m: number, d: number) => `${pad(y, 4)}-${pad(m)}-${pad(d)}`;
 
 /** Adds days to an ISO date. */
 export function addDays(iso: string, days: number): string {
@@ -70,5 +70,3 @@ export function isoDayOfWeek(iso: string): number {
   return dow === 0 ? 7 : dow;
 }
 
-/** YearMonth as "YYYY-MM" for an ISO date. */
-export const yearMonthOf = (iso: string) => iso.slice(0, 7);
