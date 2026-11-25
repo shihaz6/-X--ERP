@@ -2,7 +2,7 @@
 
 日本語版は [README.ja.md](./README.ja.md) を参照してください。
 
-NestJS (TypeScript) rebuild of the Spring Boot backend in `../backend`. It talks to the same PostgreSQL
+NestJS (TypeScript) API for the AlchemyX ERP. It talks to the same PostgreSQL
 schema (Neon in production) and serves the same `/api` contract, so the web app and the AlchemyX Connect
 phone app work against it unchanged.
 
@@ -36,7 +36,7 @@ The smoke test expects the bootstrap admin `test.admin` / `test-password-123` an
 exercises sign-in, clients, projects, orders, invoices and payments, PDFs, subscriptions, timesheets,
 leave, documents with versions, settings, analytics, the workspace snapshot and role restrictions.
 
-## What matches the Spring API
+## Compatibility with the former Spring API
 
 - All 57 business endpoints with the same paths, methods, request bodies and JSON shapes.
 - Same error bodies (`{"error": "..."}`) and status codes, including 409 for database conflicts.
@@ -47,6 +47,4 @@ leave, documents with versions, settings, analytics, the workspace snapshot and 
 
 ## Not included yet
 
-- Serving the web app's static files from this service (the Spring jar did this). Host the web app
-  separately or add static serving.
-- A Dockerfile for this service. The Spring Dockerfile at the repo root still builds the Spring backend.
+- Serving the web app's static files from this service. The web app is hosted separately (see the root README).

@@ -1,6 +1,6 @@
 # AlchemyX ERP API（NestJS）
 
-`../backend` にある Spring Boot バックエンドを NestJS（TypeScript）で作り直したものです。PostgreSQL（本番は Neon）の同じスキーマを使い、同じ `/api` の仕様を提供します。そのため、Web アプリと AlchemyX Connect（スマートフォンアプリ）は変更なしでそのまま動作します。
+AlchemyX ERP の API です（NestJS / TypeScript）。PostgreSQL（本番は Neon）を使い、`/api` の仕様は Web アプリと AlchemyX Connect（スマートフォンアプリ）が使うものと同じです。
 
 英語版は [README.md](./README.md) を参照してください。
 
@@ -64,7 +64,7 @@ BASE=http://localhost:8080 node test/e2e/smoke.mjs
 | `BILLING_CRON` / `OVERDUE_CRON` | 定期請求（既定 毎日 06:00）と期限超過の通知（既定 毎日 07:00） |
 | `RUN_MIGRATIONS` | 起動時にマイグレーションを実行するか（既定 `true`） |
 
-## Spring 版との互換性
+## 旧 Spring 版との互換性（移行時の確認内容）
 
 - 業務 API 57 本について、パス、メソッド、リクエストとレスポンスの形式が Spring 版と一致しています（ヘルスチェック `/api/health` は追加分）。
 - エラーの形式（`{"error": "..."}`）とステータスコードも同じです。データベースの制約違反は 409 を返します。
@@ -75,5 +75,4 @@ BASE=http://localhost:8080 node test/e2e/smoke.mjs
 
 ## まだ含まれていないもの
 
-- Web アプリの静的ファイルの配信（Spring の jar はこれを行っていました）。Web アプリは別途ホストするか、静的配信を追加してください。
-- この API 用の Dockerfile。ルートの Dockerfile は、今も Spring バックエンドをビルドします。
+- Web アプリの静的ファイルの配信。Web アプリは別途ホストしてください（ルートの README を参照）。
