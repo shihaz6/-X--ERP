@@ -118,7 +118,7 @@ export default function Dashboard() {
                   {caps.finance && <div className="text-right text-xs"><div className="text-neutral-300">{money(d.amount, true)}</div><div className="text-neutral-500">in {days}d</div></div>}
                 </div>
               );
-            }) : <p className="px-2 py-6 text-center text-xs text-neutral-500">No open milestones.</p>}
+            }) : <p className="px-2 py-3 text-center text-xs text-neutral-500 md:py-6">No open milestones.</p>}
           </div>
         </Card>
       </div>
@@ -134,7 +134,7 @@ export default function Dashboard() {
                   <div className="min-w-0 flex-1"><div className="truncate text-sm">{t.desc}</div><div className="text-xs text-neutral-500">{fmtDate(t.date)} · {t.category}</div></div>
                   <span className={`text-sm font-medium ${t.type === 'Income' ? 'text-emerald-400' : 'text-neutral-300'}`}>{t.type === 'Income' ? '+' : '−'}{money(t.amount, true)}</span>
                 </div>
-              )) : <p className="px-2 py-6 text-center text-xs text-neutral-500">No transactions recorded yet.</p>}
+              )) : <p className="px-2 py-3 text-center text-xs text-neutral-500 md:py-6">No transactions recorded yet.</p>}
             </div>
           </Card>
         )}
@@ -148,7 +148,7 @@ export default function Dashboard() {
                   <div className="flex flex-col items-end gap-1"><span className="text-sm font-medium">{money(i.amount, true)}</span><Badge>{i.status}</Badge></div>
                 </div>
               ))}
-              {!ws.invoices.some(i => i.status !== 'Paid') && <p className="px-2 py-6 text-center text-xs text-neutral-500">No open invoices.</p>}
+              {!ws.invoices.some(i => i.status !== 'Paid') && <p className="px-2 py-3 text-center text-xs text-neutral-500 md:py-6">No open invoices.</p>}
             </div>
           </Card>
         )}
