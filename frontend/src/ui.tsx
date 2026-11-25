@@ -196,8 +196,8 @@ export function Modal({ open, onClose, title, sub, children, footer, wide }: { o
   }, [onClose]);
   if (!open) return null;
   return (
-    <div className="fixed inset-0 z-50 grid place-items-center bg-black/60 p-4 backdrop-blur-sm" onMouseDown={onClose}>
-      <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby={titleId} tabIndex={-1} onMouseDown={e => e.stopPropagation()} className={`pop flex max-h-[90vh] w-full flex-col rounded-2xl border border-line bg-panel shadow-2xl ${wide ? 'max-w-3xl' : 'max-w-lg'}`}>
+    <div className="fixed inset-0 z-50 grid place-items-center bg-black/60 sm:p-4 backdrop-blur-sm" onMouseDown={onClose}>
+      <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby={titleId} tabIndex={-1} onMouseDown={e => e.stopPropagation()} className={`pop flex h-full w-full flex-col border-line bg-panel shadow-2xl sm:h-auto sm:max-h-[90vh] sm:rounded-2xl sm:border ${wide ? 'sm:max-w-3xl' : 'sm:max-w-lg'}`}>
         <div className="flex items-start justify-between border-b border-line/70 px-6 py-4">
           <div><h2 id={titleId} className="text-base font-semibold">{title}</h2>{sub && <p className="mt-0.5 text-xs text-neutral-500">{sub}</p>}</div>
           <button onClick={onClose} aria-label="Close dialog" className="rounded-md p-1 text-neutral-500 hover:bg-white/5 hover:text-neutral-200"><X size={18} /></button>
