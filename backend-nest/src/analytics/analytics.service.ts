@@ -3,7 +3,7 @@ import { AppConfig, CONFIG } from '../config.provider';
 import { Db } from '../db/db.service';
 import { Member } from '../common/member';
 import { Permissions, requireAccess } from '../common/permissions';
-import { addDays, todayIn, parseIso } from '../common/time';
+import { addDays, todayIn } from '../common/time';
 import { round2, SHORT_MONTHS } from '../common/format';
 import { effectiveStatus } from '../invoices/invoices.service';
 import { SettingsService } from '../settings/settings.service';
@@ -70,7 +70,8 @@ export class AnalyticsService {
 
     // Last three fiscal years, starting in the configured fiscal-year month.
     const startMonth = settings.fiscal_year_start === 'January' ? 1 : settings.fiscal_year_start === 'April' ? 4 : 7;
-    const [ty, tm] = parseIso(today) ? [Number(today.slice(0, 4)), Number(today.slice(5, 7))] : [1970, 1];
+    const ty = Number(today.slice(0, 4));
+    const tm = Number(today.slice(5, 7));
     const fyStart = `${tm >= startMonth ? ty : ty - 1}-${String(startMonth).padStart(2, '0')}`;
     const fiscalYears = [];
     for (let k = 2; k >= 0; k--) {
