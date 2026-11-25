@@ -30,9 +30,9 @@ export default function Settings() {
   return (
     <div>
       <PageHeader title="Settings & Administration" sub="Workspace configuration · Super Admin only" />
-      <div className="grid gap-4 lg:grid-cols-[220px_1fr]">
-        <Card className="h-fit p-2">{SECTIONS.map(x => <button key={x} onClick={() => setSec(x)} className={`block w-full rounded-lg px-3 py-2 text-left text-sm transition ${sec === x ? 'bg-accent-soft text-accent' : 'text-neutral-400 hover:bg-white/5 hover:text-neutral-200'}`}>{x}</button>)}</Card>
-        <div className="fade-up" key={sec}>
+      <div className="grid gap-3 md:gap-4 lg:grid-cols-[220px_minmax(0,1fr)]">
+        <Card className="h-fit p-2 grid grid-cols-2 gap-1 lg:block">{SECTIONS.map(x => <button key={x} onClick={() => setSec(x)} className={`block w-full rounded-lg px-3 py-2 text-left text-sm transition ${sec === x ? 'bg-accent-soft text-accent' : 'text-neutral-400 hover:bg-white/5 hover:text-neutral-200'}`}>{x}</button>)}</Card>
+        <div className="fade-up min-w-0" key={sec}>
           {sec === 'Company' && <CompanySection />}
           {sec === 'Accounts & roles' && <AccountsSection />}
           {sec === 'Services' && <ServicesSection services={ws.settings.services} />}
