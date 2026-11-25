@@ -4,8 +4,41 @@ import type { FinanceAnalytics, Workspace, Member, Subscription, TimesheetSubmis
 // An empty string means "same origin", used by the single-container image that serves
 // this build from the Spring Boot jar.
 const configuredBase = import.meta.env.VITE_API_URL as string | undefined;
-const BASE = configuredBase !== undefined ? configuredBase : 'http://localhost:8080';
+const DEFAULT_BASE = configuredBase !== undefined ? configuredBase : 'http://localhost:8080';
 const TOKEN_KEY = 'alchemyx.token';
+const SERVER_KEY = 'alchemyx.serverUrl';
+
+/** True inside the Capacitor native shell (Android/iOS), where the web build is not served by the API. */
+export const isNative = typeof window !== 'undefined' &&
+  !!(window as { Capacitor?: { isNativePlatform?: () => boolean } }).Capacitor?.isNativePlatform?.();
+
+/** Address of the AlchemyX server. The phone app stores the one the user entered on first launch. */
+export const serverUrl = {
+  get(): string {
+    try {
+      const saved = localStorage.getItem(SERVER_KEY);
+      if (saved) return saved;
+    } catch {
+      /* storage unavailable: fall back to the build default */
+    }
+    return DEFAULT_BASE;
+  },
+  isSet(): boolean {
+    try {
+      return !!localStorage.getItem(SERVER_KEY);
+    } catch {
+      return false;
+    }
+  },
+  set(url: string | null) {
+    try {
+      if (url) localStorage.setItem(SERVER_KEY, url.replace(/\/+$/, ''));
+      else localStorage.removeItem(SERVER_KEY);
+    } catch {
+      /* storage unavailable: the address will be asked again next launch */
+    }
+  },
+};
 
 /** Session token kept in this browser only. Storage can be unavailable (private mode), so every access is guarded. */
 export const session = {
@@ -46,7 +79,7 @@ async function send(method: string, path: string, body?: unknown): Promise<Respo
     payload = JSON.stringify(body);
   }
   try {
-    return await fetch(BASE + path, { method, headers, body: payload });
+    return await fetch(serverUrl.get() + path, { method, headers, body: payload });
   } catch {
     throw new ApiError(0, 'Cannot reach the AlchemyX server. Check your connection and try again.');
   }
