@@ -25,8 +25,8 @@ export class TeamController {
   }
 
   @Get('timesheets/submissions')
-  submissions(@Query('weekStart') weekStart: string): Promise<TimesheetSubmissionDto[]> {
-    return this.team.submissions(weekStart);
+  submissions(@Me() me: Member, @Query('weekStart') weekStart: string): Promise<TimesheetSubmissionDto[]> {
+    return this.team.submissions(me, weekStart);
   }
 
   @Post('timesheets/:memberId/:weekStart/decision')
@@ -41,8 +41,8 @@ export class TeamController {
   }
 
   @Get('leave')
-  leave(): Promise<LeaveDto[]> {
-    return this.team.leaves();
+  leave(@Me() me: Member): Promise<LeaveDto[]> {
+    return this.team.leaves(me);
   }
 
   @Post('leave')
