@@ -38,7 +38,7 @@ export class TeamService {
 
   /** Managers see every timesheet; other members see only their own. Returns Monday to Friday of the week. */
   async timesheet(viewer: Member, weekStartIso: string): Promise<TimesheetEntryDto[]> {
-    const monday = mondayOf(weekStartIso);
+    const monday = mondayOf(V.date(weekStartIso, 'Week start'));
     const rows = await this.db.q.query<{ member_id: string; work_date: string; hours: number }>(
       'SELECT member_id, work_date, hours FROM timesheet_entries WHERE work_date BETWEEN $1 AND $2 ORDER BY work_date',
       [monday, addDays(monday, 4)]);
